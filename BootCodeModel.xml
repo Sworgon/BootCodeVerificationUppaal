@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>const int MemoryMax = 40;
+const int MemoryMaxIndex = 40;
+const int blockSize = 512;
+const int outputSize = 256;
+
+typedef int[0,MemoryMax-1] memory_t;
+typedef int[0,MemoryMaxIndex - 1] memory_index_t;
+typedef int[0,1] bit_t;
+
+typedef struct {
+    int key;
+    // something else;
+} pub_key_t;
+
+typedef struct {
+    int identifier;
+    int image_code[blockSize];
+    int entry_point;
+    int signature;
+    pub_key_t pub_signature_key;
+} rom_ext_manifest_t;
+
+typedef struct {
+    int size;
+    rom_ext_manifest_t rom_exts_mfs[10];
+} rom_exts_manifests_t;
+
+
+typedef struct {
+    memory_t identifier;
+    memory_t rom_ext_slot;
+    // function pointers;
+} boot_policy_t;
+
+
+
+
+memory_t GlobalMemory[MemoryMaxIndex];
+//bit_t GlobalKey[blockSize];
+//bit_t GlobalMessage[blockSize];
+bool GlobalRsaAnswer;
+rom_ext_manifest_t GlobalManifest;
+
+chan memoryRead[MemoryMaxIndex][MemoryMaxIndex],
+     memoryWrite[MemoryMax];
+
+chan MaskSuccess,
+     MaskFailure,
+     ROMExtFailure;
+
+chan HMACCalled;
+
+chan verificationRequest,
+     verificationAnswer;
+
+void ClearGlobalMemory(){
+    int i;
+    for (i = 0; i &lt; MemoryMaxIndex; i++)
+    {
+        GlobalMemory[i] = 0;
+    }
+}
+
+void ClearGlobalManifest(){
+    
+}</declaration>
+	<template>
+		<name>ROMExt</name>
+		<location id="id0" x="0" y="0">
+		</location>
+		<location id="id1" x="-51" y="85">
+		</location>
+		<location id="id2" x="51" y="85">
+		</location>
+		<init ref="id0"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="42" y="25">MaskFailure?</label>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-136" y="25">MaskSuccess?</label>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">MaskROM</name>
+		<declaration>boot_policy_t boot_policy;
+rom_exts_manifests_t rom_exts_manifests;
+int manifestIndex = 0;
+
+//----------------------
+
+void read_boot_policy(){  
+    boot_policy_t temp_boot_policy;
+    
+    temp_boot_policy.identifier = GlobalMemory[0];
+    //memcpy(boot_policy.identifier, data, 512); 
+
+    temp_boot_policy.rom_ext_slot = GlobalMemory[1];
+    //memcpy(boot_policy.rom_ext_slot, data+(512/sizeof(int)), 2560); 
+
+    //memcpy(boot_policy.success, data+(3072/sizeof(int)), 512); 
+    //memcpy(boot_policy.fail, data+(3584/sizeof(int)), 512);
+    
+    boot_policy = temp_boot_policy;
+    ClearGlobalMemory();
+}
+
+
+void rom_ext_manifests_to_try(boot_policy_t boot_policy){
+    rom_exts_manifests_t temp_manifests;
+
+    rom_ext_manifest_t temp_manifest;
+    int i;
+    temp_manifest.identifier = 0;
+    
+    for(i = 0; i &lt; 10; i++)
+    {
+        temp_manifest.image_code[i] = i + 1;
+    }
+    temp_manifest.entry_point = 11;
+    temp_manifest.signature = 12;
+    temp_manifest.pub_signature_key.key = 13;
+    
+    temp_manifests.rom_exts_mfs[0] = temp_manifest;
+    temp_manifests.size = 1;
+
+    rom_exts_manifests = temp_manifests; 
+}
+
+int checkRomManifest(rom_ext_manifest_t manifest)
+{
+    return 1;
+}
+
+int checkPublicKey(pub_key_t key)
+{
+    return 1;
+}
+
+void unlockPMPRegion(){
+
+}
+
+
+
+</declaration>
+		<location id="id3" x="-51" y="119">
+		</location>
+		<location id="id4" x="255" y="289">
+		</location>
+		<location id="id5" x="-51" y="289">
+		</location>
+		<location id="id6" x="102" y="119">
+			<committed/>
+		</location>
+		<location id="id7" x="255" y="119">
+		</location>
+		<location id="id8" x="255" y="425">
+		</location>
+		<location id="id9" x="765" y="425">
+		</location>
+		<location id="id10" x="969" y="170">
+		</location>
+		<location id="id11" x="969" y="17">
+		</location>
+		<location id="id12" x="629" y="17">
+		</location>
+		<location id="id13" x="-51" y="17">
+		</location>
+		<init ref="id3"/>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="-204" y="110">ROMExtFailure?</label>
+			<nail x="-102" y="68"/>
+			<nail x="-102" y="238"/>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id4"/>
+			<label kind="assignment" x="518" y="110">manifestIndex++</label>
+			<nail x="629" y="136"/>
+			<nail x="374" y="136"/>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id13"/>
+			<label kind="synchronisation" x="221" y="-8">MaskSuccess!</label>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id12"/>
+			<label kind="assignment" x="714" y="-17">unlockPMPRegion()</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id4"/>
+			<label kind="guard" x="816" y="110">!GlobalRsaAnswer</label>
+			<label kind="synchronisation" x="816" y="127">verificationAnswer?</label>
+			<label kind="assignment" x="816" y="144">manifestIndex++</label>
+			<nail x="442" y="170"/>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id11"/>
+			<label kind="guard" x="986" y="68">GlobalRsaAnswer</label>
+			<label kind="synchronisation" x="986" y="85">verificationAnswer?</label>
+			<label kind="assignment" x="986" y="102">GlobalRsaAnswer = false</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id4"/>
+			<label kind="guard" x="365" y="246">!checkPublicKey(rom_exts_manifests.rom_exts_mfs[manifestIndex].pub_signature_key)</label>
+			<label kind="assignment" x="484" y="263">manifestIndex++</label>
+			<nail x="765" y="289"/>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id10"/>
+			<label kind="guard" x="977" y="297">checkPublicKey(rom_exts_manifests.rom_exts_mfs[manifestIndex].pub_signature_key)</label>
+			<label kind="synchronisation" x="977" y="314">verificationRequest!</label>
+			<label kind="assignment" x="977" y="340">GlobalManifest = rom_exts_manifests.rom_exts_mfs[manifestIndex]</label>
+			<nail x="969" y="425"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id4"/>
+			<label kind="guard" x="306" y="314">!checkRomManifest(rom_exts_manifests.rom_exts_mfs[manifestIndex])</label>
+			<label kind="assignment" x="314" y="340">manifestIndex++</label>
+			<nail x="289" y="357"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id9"/>
+			<label kind="guard" x="297" y="433">checkRomManifest(rom_exts_manifests.rom_exts_mfs[manifestIndex])</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id8"/>
+			<label kind="guard" x="-51" y="340">rom_exts_manifests.size != manifestIndex</label>
+			<nail x="221" y="357"/>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id4"/>
+			<label kind="assignment" x="17" y="178">rom_ext_manifests_to_try(boot_policy)</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id7"/>
+			<label kind="assignment" x="119" y="127">read_boot_policy()</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-25" y="246">rom_exts_manifests.size == manifestIndex</label>
+			<label kind="synchronisation" x="-25" y="263">MaskFailure!</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-34" y="127">memoryRead[0][39]!</label>
+		</transition>
+	</template>
+	<template>
+		<name>HMAC</name>
+		<declaration>
+
+
+bit_t secretKey[blockSize];
+bit_t message[blockSize];
+bit_t oPad[blockSize];
+bit_t iPad[blockSize];
+
+bit_t intermediateResult[blockSize*2];
+
+bit_t result[outputSize];
+
+bit_t my_xor(bit_t a, bit_t b){
+    return a != b;
+}
+
+void calculateOPad(){
+    //o_key_pad = secretKey xor [0x5c * blockSize / 8]    Outer padded key
+    int i;
+    for(i = 0; i &lt; blockSize / 8; i++)
+    {
+        oPad[i] = my_xor(secretKey[i],0);
+        oPad[i+1] = my_xor(secretKey[i+1],1);
+        oPad[i+2] = my_xor(secretKey[i+2],0);
+        oPad[i+3] = my_xor(secretKey[i+3],1);
+        oPad[i+4] = my_xor(secretKey[i+4],1);
+        oPad[i+5] = my_xor(secretKey[i+5],1);
+        oPad[i+6] = my_xor(secretKey[i+6],0);
+        oPad[i+7] = my_xor(secretKey[i+7],0);
+    }
+}
+
+void calculateIPad(){
+    //i_key_pad = secretKey xor [0x36 * blockSize / 8]   // Inner padded key
+    int i;
+    for(i = 0; i &lt; blockSize / 8; i++)
+    {
+        iPad[i] = my_xor(secretKey[i],0);
+        iPad[i+1] = my_xor(secretKey[i+1],0);
+        iPad[i+2] = my_xor(secretKey[i+2],1);
+        iPad[i+3] = my_xor(secretKey[i+3],1);
+        iPad[i+4] = my_xor(secretKey[i+4],0);
+        iPad[i+5] = my_xor(secretKey[i+5],1);
+        iPad[i+6] = my_xor(secretKey[i+6],1);
+        iPad[i+7] = my_xor(secretKey[i+7],0);
+    }
+}
+
+void hash(int size) // Takes and returns a bit array
+{
+    int i;
+    for (i = 0; i &lt; outputSize; i++)
+    {
+        result[i] = intermediateResult[i];
+    }
+}
+
+void HMAC() // Assuming the key is always exactly 512 bits long.
+{
+    int i;
+    calculateOPad();
+    calculateIPad();
+    
+    //hash(o_key_pad ∥ hash(i_key_pad ∥ message))
+
+    
+    for(i = 0; i &lt; blockSize; i++)
+    {
+        intermediateResult[i] = iPad[i];
+        intermediateResult[i + blockSize] = message[i];
+    }
+    hash(blockSize * 2);
+    
+    for(i = 0; i &lt; blockSize; i++)
+    {
+        intermediateResult[i] = oPad[i];
+        if (i &lt; outputSize)
+            intermediateResult[i + blockSize] = result[i];
+    }
+    
+    hash(outputSize + blockSize);
+}
+
+void readKey(){}
+
+void readMessage(){}
+</declaration>
+		<location id="id14" x="-595" y="-391">
+		</location>
+		<location id="id15" x="-391" y="-391">
+		</location>
+		<init ref="id14"/>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="-544" y="-467">HMACCalled?</label>
+			<label kind="assignment" x="-544" y="-442">readKey(),
+readMessage()</label>
+		</transition>
+	</template>
+	<template>
+		<name>RSAModule</name>
+		<declaration>bit_t hashResult[outputSize];
+bit_t decryptResult[outputSize];
+
+rom_ext_manifest_t manifest;
+
+void readManifest(){
+    manifest = GlobalManifest;
+}
+
+void hash(){ // Takes an array, returns an array
+    int i;
+    for (i = 0; i &lt; outputSize; i++)
+    {
+        hashResult[i] = not manifest.image_code[i];
+    }
+}
+
+void decrypt(int signature, pub_key_t publicKey){
+    int i;
+    for (i = 0; i &lt; outputSize; i++)
+    {
+        decryptResult[i] = not manifest.image_code[i];
+    }
+}
+
+bool verify(){
+    int i;
+    decrypt(manifest.signature, manifest.pub_signature_key);
+    
+    for(i = 0; i &lt; outputSize; i++)
+        if (decryptResult[i] != hashResult[i])
+            return false;
+
+    return true;
+}</declaration>
+		<location id="id16" x="-119" y="-51">
+		</location>
+		<location id="id17" x="-17" y="-51">
+			<committed/>
+		</location>
+		<location id="id18" x="-68" y="-136">
+			<committed/>
+		</location>
+		<init ref="id16"/>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id16"/>
+			<label kind="synchronisation" x="-204" y="-119">verificationAnswer!</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id18"/>
+			<label kind="assignment" x="-25" y="-119">GlobalRsaAnswer = true</label>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id17"/>
+			<label kind="synchronisation" x="-118" y="-34">verificationRequest?</label>
+			<label kind="assignment" x="-110" y="-17">readManifest(),
+ClearGlobalManifest()</label>
+		</transition>
+	</template>
+	<template>
+		<name>Memory</name>
+		<declaration>memory_t memory[MemoryMaxIndex];
+int[0,MemoryMaxIndex] nextMemoryCell = 0;
+
+void write(int data){
+    memory[nextMemoryCell] = data;    
+    nextMemoryCell++;
+}
+
+void read(int start, int end){
+    int i;
+    for(i = 0; i &lt;= end - start; i++)
+    {
+        GlobalMemory[i] = memory[start + i];
+    }
+}
+
+void InitMemory(){
+    int i;
+    for(i = 0; i &lt; MemoryMaxIndex; i++)   
+    {
+        memory[i] = i;
+    }
+}</declaration>
+		<location id="id19" x="-17" y="-17">
+		</location>
+		<location id="id20" x="-17" y="-119">
+		</location>
+		<init ref="id20"/>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id19"/>
+			<label kind="assignment" x="-8" y="-102">InitMemory()</label>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id19"/>
+			<label kind="select" x="-229" y="-76">start : memory_index_t,
+end : memory_index_t</label>
+			<label kind="guard" x="-229" y="-42">start &lt; end &amp;&amp;
+end &lt; MemoryMaxIndex</label>
+			<label kind="synchronisation" x="-229" y="-8">memoryRead[start][end]?</label>
+			<label kind="assignment" x="-229" y="8">read(start,end)</label>
+			<nail x="-68" y="-68"/>
+			<nail x="-68" y="34"/>
+			<nail x="-42" y="8"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+// List one or more processes to be composed into a system.
+system MaskROM, ROMExt, Memory, RSAModule;
+    </system>
+	<queries>
+		<query>
+			<formula></formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>
