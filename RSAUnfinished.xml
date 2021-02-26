@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>int p = 29;
+int q = 31;
+
+int phi = (p-1)*(q-1);
+int n = p * q; // modulus
+const int eReceiver = 9; // encrypt (receiver's public key)
+const int eSender = 7; // (sender's public key)</declaration>
+	<template>
+		<name x="5" y="5">Sender</name>
+		<declaration>int message = 420; // 1 &lt; m &lt; n - 1
+int d = 5; // Sender's private key.
+
+int s; //signature. m^d mod n</declaration>
+		<location id="id0" x="17" y="-17">
+		</location>
+		<init ref="id0"/>
+	</template>
+	<template>
+		<name>Receiver</name>
+		<declaration>C = 10;
+int d = 5; // decrypt
+
+m = c^d mod n = 19</declaration>
+		<location id="id1" x="0" y="0">
+		</location>
+		<init ref="id1"/>
+	</template>
+	<system>// Place template instantiations here.
+Process = Template();
+// List one or more processes to be composed into a system.
+system Process;
+    </system>
+	<queries>
+		<query>
+			<formula></formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>

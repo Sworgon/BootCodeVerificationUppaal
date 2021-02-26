@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+
+const int SIZE_MAX = 32767;
+const int Sz = 3;
+
+const int RANGE = 64;
+typedef int[-RANGE,RANGE - 1] short_t;
+
+short_t returnedResult = 0;
+
+short_t arr[Sz];
+
+
+
+chan callArrayMax;
+chan arrayMaxSuccess,
+     arrayMaxFailure;</declaration>
+	<template>
+		<name>Main</name>
+		<declaration>short_t max;
+int i = 0;
+
+
+short_t mainArr[Sz];
+
+void addNumberToArr(short_t num){
+    mainArr[i] = num;
+    i++;
+}</declaration>
+		<location id="id0" x="-51" y="-85">
+		</location>
+		<location id="id1" x="-187" y="-85">
+		</location>
+		<location id="id2" x="-119" y="-187">
+		</location>
+		<location id="id3" x="-119" y="-255">
+		</location>
+		<location id="id4" x="-119" y="-357">
+		</location>
+		<init ref="id4"/>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id4"/>
+			<label kind="select" x="-59" y="-399">num : short_t</label>
+			<label kind="guard" x="-59" y="-382">i &lt; Sz</label>
+			<label kind="assignment" x="-59" y="-365">addNumberToArr(num)</label>
+			<nail x="-68" y="-340"/>
+			<nail x="-68" y="-374"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-110" y="-314">i &gt;= Sz</label>
+			<label kind="assignment" x="-110" y="-297">arr = mainArr</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-76" y="-153">arrayMaxFailure?</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-306" y="-170">arrayMaxSuccess?</label>
+			<label kind="assignment" x="-306" y="-153">max = returnedResult,
+returnedResult = 0</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-102" y="-229">callArrayMax!</label>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">ArrayMax</name>
+		<declaration>int result;
+int i;
+
+void initialize(){
+    result = arr[0];
+    i = 0;
+}
+
+void loop(){
+    if (arr[i] &gt; result)
+        result = arr[i];
+    i++;
+}
+
+bool requires(){
+    return 0 &lt; Sz &amp;&amp; Sz &lt; SIZE_MAX;
+}
+
+bool loopInvariant(){
+    // largest
+    int j;
+    int k;
+    for( j = 0; j &lt; i; j++)
+        if(result &lt; arr[j])
+            return false;
+
+    // pos
+    if (i &lt; 0 || i &gt; Sz)
+        return false;
+
+    // existsInArr
+    
+    for(k = 0; k &lt; i; k++)
+        if (arr[k] == result)
+            return true;
+    
+    return false;
+}
+
+bool ensures(){
+    // largest
+    int j;
+    int k;
+    bool found = false;
+    for( j = 0; j &lt; Sz; j++)
+        if(result &lt; arr[j])
+            return false;
+    
+    
+    for(k = 0; k &lt; Sz; k++)
+        if (arr[k] == result)
+            {
+                found = true;
+            }
+    
+    // BAD ENSURES: ensures \result = 142;
+    return found;// &amp;&amp; result == 142;
+}</declaration>
+		<location id="id5" x="-153" y="85">
+			<name x="-136" y="76">Success</name>
+		</location>
+		<location id="id6" x="-153" y="-85">
+			<name x="-136" y="-93">Loop</name>
+		</location>
+		<location id="id7" x="-153" y="-221">
+			<name x="-136" y="-238">Init</name>
+		</location>
+		<location id="id8" x="-425" y="-221">
+			<name x="-518" y="-238">RequiresFail</name>
+		</location>
+		<location id="id9" x="-289" y="-85">
+		</location>
+		<location id="id10" x="-425" y="-85">
+			<name x="-544" y="-110">LoopInvariantFail</name>
+		</location>
+		<location id="id11" x="-425" y="85">
+			<name x="-510" y="59">EnsuresFail</name>
+		</location>
+		<location id="id12" x="-289" y="153">
+		</location>
+		<location id="id13" x="-153" y="-17">
+		</location>
+		<location id="id14" x="-629" y="-85">
+			<name x="-680" y="-110">Failure</name>
+		</location>
+		<location id="id15" x="-153" y="-289">
+		</location>
+		<init ref="id15"/>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-144" y="-272">callArrayMax?</label>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="-611" y="-306">arrayMaxFailure!</label>
+			<nail x="-629" y="-289"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id14"/>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id14"/>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id14"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id13"/>
+			<label kind="guard" x="-144" y="-68">i &gt;= Sz</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="-127" y="136">arrayMaxSuccess!</label>
+			<label kind="assignment" x="-127" y="153">returnedResult = result</label>
+			<nail x="0" y="153"/>
+			<nail x="0" y="-289"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id12"/>
+			<nail x="-170" y="102"/>
+			<nail x="-170" y="136"/>
+			<nail x="-272" y="136"/>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id11"/>
+			<label kind="guard" x="-306" y="51">!ensures()</label>
+			<nail x="-170" y="0"/>
+			<nail x="-170" y="68"/>
+			<nail x="-408" y="68"/>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id10"/>
+			<label kind="guard" x="-399" y="-110">!loopInvariant()</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id6"/>
+			<label kind="guard" x="-280" y="-127">loopInvariant()</label>
+			<nail x="-221" y="-102"/>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id8"/>
+			<label kind="guard" x="-238" y="-246">!requires()</label>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-144" y="42">ensures()</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id9"/>
+			<label kind="guard" x="-238" y="-68">i &lt; Sz</label>
+			<label kind="assignment" x="-238" y="-51">loop()</label>
+			<nail x="-221" y="-68"/>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="guard" x="-144" y="-195">requires()</label>
+			<label kind="assignment" x="-144" y="-178">initialize()</label>
+		</transition>
+	</template>
+	<system>system ArrayMax, Main;
+    </system>
+	<queries>
+		<query>
+			<formula>E&lt;&gt; ArrayMax.Failure</formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>
