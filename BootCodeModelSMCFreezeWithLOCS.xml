@@ -18,7 +18,7 @@ int ZenoLoc;
 int EnvironmentLoc;
 int PmpUnlockRomExtLoc;
 int ROMExtLoc;
-int MaskROM2RotLoc; 
+int MaskROM2RotLoc;
 int ReadBootPolicyLoc;
 int ReadPubKeyLoc;
 int VerifyRomExtLoc;
@@ -122,7 +122,7 @@ void ClearGlobalManifest(){
 
 }
 void ClearGlobalBootPolicy(){
-    
+
 }
 void ClearGlobalPublicKey(){
     int i;
@@ -328,7 +328,7 @@ EnvironmentLoc = 2</label>
 			<label kind="select" x="-204" y="93">start : memory_index_t,
 end : memory_index_t</label>
 			<label kind="guard" x="-204" y="127">start &lt;= end &amp;&amp;
-safeEnvironment &amp;&amp; 
+safeEnvironment &amp;&amp;
 MemoryLoc == 1</label>
 			<label kind="synchronisation" x="-204" y="178">memoryWrite[start][end]!</label>
 			<label kind="assignment" x="-204" y="195">ROMExtLoc = 3</label>
@@ -355,18 +355,18 @@ rom_ext_manifest_t currentManifest;
 
 //----------------------
 
-void read_boot_policy(){  
+void read_boot_policy(){
     boot_policy_t temp_boot_policy;
-    
+
     temp_boot_policy.identifier = GlobalMemory[0];
-    //memcpy(boot_policy.identifier, data, 512); 
+    //memcpy(boot_policy.identifier, data, 512);
 
     temp_boot_policy.rom_ext_slot = GlobalMemory[1];
-    //memcpy(boot_policy.rom_ext_slot, data+(512/sizeof(int)), 2560); 
+    //memcpy(boot_policy.rom_ext_slot, data+(512/sizeof(int)), 2560);
 
-    //memcpy(boot_policy.success, data+(3072/sizeof(int)), 512); 
+    //memcpy(boot_policy.success, data+(3072/sizeof(int)), 512);
     //memcpy(boot_policy.fail, data+(3584/sizeof(int)), 512);
-    
+
     boot_policy = temp_boot_policy;
     ClearGlobalMemory();
 }
@@ -378,7 +378,7 @@ void rom_ext_manifests_to_try(boot_policy_t boot_policy){
     rom_ext_manifest_t temp_manifest;
     int i;
     temp_manifest.identifier = 0;
-    
+
     for(i = 0; i &lt; 10; i++)
     {
         temp_manifest.image_code[i] = i + 1;
@@ -386,11 +386,11 @@ void rom_ext_manifests_to_try(boot_policy_t boot_policy){
     temp_manifest.entry_point = 11;
     temp_manifest.signature = 12;
     //temp_manifest.pub_signature_key.key = 13;
-    
+
     temp_manifests.rom_exts_mfs[0] = temp_manifest;
     temp_manifests.size = 1;
 
-    rom_exts_manifests = temp_manifests; 
+    rom_exts_manifests = temp_manifests;
 }
 
 int checkRomManifest(rom_ext_manifest_t manifest)
@@ -545,7 +545,7 @@ void rom_ext_manifests_to_try(boot_policy_t boot_policy){
     rom_ext_manifest_t temp_manifest3;
     int i;
     temp_manifest.identifier = 0;
-    
+
     for(i = 0; i &lt; 10; i++)
     {
         temp_manifest.image_code[i] = i + 1;
@@ -555,7 +555,7 @@ void rom_ext_manifests_to_try(boot_policy_t boot_policy){
     temp_manifest.entry_point = 11;
     temp_manifest.signature = 0; // evt. ændre, så én af manifesternes signature er != 0.
     //temp_manifest.pub_signature_key.key = 13;
-    
+
     temp_manifest2.entry_point = 11;
     temp_manifest2.signature = 12; // evt. ændre, så én af manifesternes signature er != 0.
     //temp_manifest2.pub_signature_key.key = 13;
@@ -569,7 +569,7 @@ void rom_ext_manifests_to_try(boot_policy_t boot_policy){
     temp_manifests.rom_exts_mfs[2] = temp_manifest3;
     temp_manifests.size = 3;
 
-    rom_exts_manifests = temp_manifests; 
+    rom_exts_manifests = temp_manifests;
 }
 
 bool CheckRomManifest(rom_ext_manifest_t manifest){
@@ -758,7 +758,7 @@ void rom_ext_manifests_to_try(boot_policy_t boot_policy){
     rom_ext_manifest_t temp_manifest3;
     int i;
     temp_manifest.identifier = 0;
-    
+
     for(i = 0; i &lt; 10; i++)
     {
         temp_manifest.image_code[i] = i + 1;
@@ -769,9 +769,9 @@ void rom_ext_manifests_to_try(boot_policy_t boot_policy){
     temp_manifest.signature = 0; // evt. ændre, så én af manifesternes signature er != 0.
     for(i = 0; i &lt; 8; i++)
         temp_manifest.pub_signature_key.key[i] = (i * i * 2) % 21;
-    
+
     temp_manifest2.entry_point = 11;
-    temp_manifest2.signature = 12; 
+    temp_manifest2.signature = 12;
     for(i = 0; i &lt; 8; i++)
         temp_manifest2.pub_signature_key.key[i] = (3 * i * + 1) % 21;
 
@@ -785,7 +785,7 @@ void rom_ext_manifests_to_try(boot_policy_t boot_policy){
     temp_manifests.rom_exts_mfs[2] = temp_manifest3;
     temp_manifests.size = 3;
 
-    rom_exts_manifests = temp_manifests; 
+    rom_exts_manifests = temp_manifests;
 }
 
 bool CheckManifest(rom_ext_manifest_t manifest){
@@ -1004,7 +1004,7 @@ MaskROM2RotLoc = 4</label>
 		<transition>
 			<source ref="id49"/>
 			<target ref="id57"/>
-			<label kind="guard" x="161" y="-144">CheckManifest(currentManifest) &amp;&amp; 
+			<label kind="guard" x="161" y="-144">CheckManifest(currentManifest) &amp;&amp;
 safeEnvironment &amp;&amp; ReadPubKeyLoc == 0</label>
 			<label kind="synchronisation" x="161" y="-110">read_public_key!</label>
 			<label kind="assignment" x="161" y="-93">GlobalManifest = currentManifest,
@@ -1014,7 +1014,7 @@ MaskROM2RotLoc = 8</label>
 		<transition>
 			<source ref="id45"/>
 			<target ref="id49"/>
-			<label kind="guard" x="178" y="-238">!NoMoreManifests() &amp;&amp; 
+			<label kind="guard" x="178" y="-238">!NoMoreManifests() &amp;&amp;
 safeEnvironment</label>
 			<label kind="assignment" x="178" y="-204">SetManifest(),
 MaskROM2RotLoc = 7</label>
@@ -1057,7 +1057,7 @@ MaskROM2RotLoc = 3</label>
 		<declaration>/*
 boot_policy_t read_boot_policy()
 {
-    int* data = READ_FLASH(0, sizeof(boot_policy_t)); 
+    int* data = READ_FLASH(0, sizeof(boot_policy_t));
 
     boot_policy_t boot_policy;
 
@@ -1072,11 +1072,11 @@ boot_policy_t read_boot_policy()
 boot_policy_t readBootPolicy()
 {
     boot_policy_t result;
-    
+
     result.identifier = GlobalMemory[0];
     result.rom_ext_slot = GlobalMemory[1];
     ClearGlobalMemory();
-    
+
     return result;
 }</declaration>
 		<location id="id62" x="85" y="34">
@@ -1122,7 +1122,7 @@ ReadBootPolicyLoc = 2</label>
 void read_pub_key(rom_ext_manifest_t current_rom_ext_manifest) {
     int i;
     pub_key_t result = current_rom_ext_manifest.pub_signature_key;
-    
+
 
     manifest.identifier = 0;
     for(i = 0; i &lt; blockSize; i++)
@@ -1132,7 +1132,7 @@ void read_pub_key(rom_ext_manifest_t current_rom_ext_manifest) {
     manifest.entry_point = 0;
     manifest.signature = 0;
     manifest.pub_signature_key.key[0] = 0;
-    
+
     GlobalPublicKey = result;
 }
 
@@ -1311,24 +1311,24 @@ void HMAC() // Assuming the key is always exactly 512 bits long.
     int i;
     calculateOPad();
     calculateIPad();
-    
+
     //hash(o_key_pad ∥ hash(i_key_pad ∥ message))
 
-    
+
     for(i = 0; i &lt; blockSize; i++)
     {
         intermediateResult[i] = iPad[i];
         intermediateResult[i + blockSize] = message[i];
     }
     hash(blockSize * 2);
-    
+
     for(i = 0; i &lt; blockSize; i++)
     {
         intermediateResult[i] = oPad[i];
         if (i &lt; outputSize)
             intermediateResult[i + blockSize] = result[i];
     }
-    
+
     hash(outputSize + blockSize);
 }
 
@@ -1380,7 +1380,7 @@ void decrypt(int signature, pub_key_t publicKey){
 bool verify(){
     //int i;
     //decrypt(manifest.signature, manifest.pub_signature_key);
-    
+
     //for(i = 0; i &lt; outputSize; i++)
     //    if (decryptResult[i] != hashResult[i])
     //        return false;
@@ -1430,7 +1430,7 @@ bool exception = false;
 int[0,MemoryMaxIndex] nextMemoryCell = 0;
 
 void write(int data){
-    memory[nextMemoryCell] = data;    
+    memory[nextMemoryCell] = data;
     nextMemoryCell++;
 }
 
@@ -1445,7 +1445,7 @@ void read(int start, int end){
 void InitMemory(){
     int i;
     locked = false;
-    for(i = 0; i &lt; MemoryMaxIndex; i++)   
+    for(i = 0; i &lt; MemoryMaxIndex; i++)
     {
         memory[i] = i;
     }
@@ -1519,7 +1519,7 @@ MemoryLoc = 1</label>
 end : memory_index_t</label>
 			<label kind="guard" x="-807" y="-8329">start &lt; end &amp;&amp;
 end &lt; MemoryMaxIndex &amp;&amp;
-!locked &amp;&amp; 
+!locked &amp;&amp;
 safeEnvironment</label>
 			<label kind="synchronisation" x="-807" y="-8261">memoryRead[start][end]?</label>
 			<label kind="assignment" x="-807" y="-8244">read(start,end)</label>
