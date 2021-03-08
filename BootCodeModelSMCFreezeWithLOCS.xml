@@ -1,0 +1,1620 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>const int MemoryMax = 40;
+const int MemoryMaxIndex = 40;
+const int blockSize = 512;
+const int outputSize = 256;
+const int keySize = 8;
+
+typedef int[0,MemoryMax-1] memory_t;
+typedef int[0,MemoryMaxIndex - 1] memory_index_t;
+typedef int[0,1] bit_t;
+
+
+/* Locs for template*/
+int AbortObserverLoc;
+int ZenoLoc;
+int EnvironmentLoc;
+int PmpUnlockRomExtLoc;
+int ROMExtLoc;
+int MaskROM2RotLoc; 
+int ReadBootPolicyLoc;
+int ReadPubKeyLoc;
+int VerifyRomExtLoc;
+int RSAModuleLoc;
+int MemoryLoc;
+int ExceptionHandlerLoc;
+
+
+
+
+typedef struct {
+    int[0,20] key[keySize];
+    // something else;
+} pub_key_t;
+
+typedef struct {
+    int identifier;
+    int image_code[blockSize];
+    int entry_point;
+    int signature;
+    pub_key_t pub_signature_key;
+} rom_ext_manifest_t;
+
+typedef struct {
+    int size;
+    rom_ext_manifest_t rom_exts_mfs[10];
+} rom_exts_manifests_t;
+
+
+typedef struct {
+    memory_t identifier;
+    memory_t rom_ext_slot;
+    // function pointers;
+} boot_policy_t;
+
+
+
+
+memory_t GlobalMemory[MemoryMaxIndex];
+//bit_t GlobalKey[blockSize];
+//bit_t GlobalMessage[blockSize];
+bool GlobalRsaAnswer;
+rom_ext_manifest_t GlobalManifest;
+boot_policy_t GlobalBootPolicy;
+pub_key_t GlobalPublicKey;
+bool safeEnvironment = true;
+const int leakSize = 2;
+int[0,20] leakedByte[leakSize];
+
+
+broadcast chan memoryRead[MemoryMaxIndex][MemoryMaxIndex],
+                 memoryWrite[MemoryMaxIndex][MemoryMaxIndex],
+                 memoryUnlock;
+
+broadcast chan MaskSuccess;
+broadcast chan MaskFailure,
+     ROMExtFailure;
+
+broadcast chan HMACCalled;
+
+broadcast chan verificationRequest,
+         verificationAnswer;
+
+broadcast chan read_boot_policy,
+         answer_boot_policy;
+
+broadcast chan read_public_key,
+         answer_public_key;
+
+broadcast chan verify_rom_ext,
+         answer_rom_ext;
+
+broadcast chan pmp_request_unlock,
+         pmp_done_unlock;
+
+broadcast chan environment_unsafe;
+
+broadcast chan raise_exception,
+               lower_exception_badly;
+
+void ClearGlobalMemory(){
+    int i;
+    for (i = 0; i &lt; MemoryMaxIndex; i++)
+    {
+        GlobalMemory[i] = 0;
+    }
+}
+
+void ClearGlobalManifest(){
+    int i;
+    GlobalManifest.identifier = 0;
+    for(i = 0; i &lt; blockSize; i++)
+    {
+        GlobalManifest.image_code[i] = 0;
+    }
+    GlobalManifest.entry_point = 0;
+    GlobalManifest.signature = 0;
+    for (i = 0; i &lt; keySize; i++){
+        GlobalManifest.pub_signature_key.key[i] = 0;
+    }
+
+}
+void ClearGlobalBootPolicy(){
+    
+}
+void ClearGlobalPublicKey(){
+    int i;
+    for( i = 0; i &lt; keySize; i++){
+        GlobalPublicKey.key[i] = 0;
+    }
+}</declaration>
+	<template>
+		<name>Adversary</name>
+		<declaration>int[0,20] key[keySize];
+int counter = 0;
+</declaration>
+		<location id="id0" x="-357" y="-153">
+			<name x="-391" y="-221">AdversaryIdle</name>
+		</location>
+		<init ref="id0"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-586" y="-178">key[counter] != 0</label>
+			<label kind="assignment" x="-586" y="-144">counter = (counter + 1) % 8</label>
+			<nail x="-408" y="-204"/>
+			<nail x="-408" y="-102"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id0"/>
+			<label kind="select" x="-297" y="-221">index2 : int[0,leakSize-1]</label>
+			<label kind="guard" x="-297" y="-204">key[counter] == 0 &amp;&amp;
+leakedByte[index2] != 0</label>
+			<label kind="assignment" x="-297" y="-170">key[counter] = leakedByte[index2],
+leakedByte[index2] = 0,
+counter = (counter + 1) % 8</label>
+			<nail x="-306" y="-102"/>
+			<nail x="-306" y="-204"/>
+		</transition>
+	</template>
+	<template>
+		<name>AbortObserver</name>
+		<declaration>
+void scrambleMemory(){
+}
+
+
+</declaration>
+		<location id="id1" x="119" y="-51">
+			<name x="93" y="-93">Deadlock</name>
+			<committed/>
+		</location>
+		<location id="id2" x="-51" y="-51">
+			<name x="-61" y="-85">Safe</name>
+		</location>
+		<init ref="id2"/>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-34" y="-42">environment_unsafe?</label>
+			<label kind="assignment" x="-34" y="-25">scrambleMemory(),
+AbortObserverLoc = 1</label>
+		</transition>
+	</template>
+	<template>
+		<name>Zeno</name>
+		<location id="id3" x="51" y="-17">
+			<name x="41" y="-51">ZenoDisabled</name>
+		</location>
+		<location id="id4" x="-153" y="-17">
+			<name x="-255" y="-51">ZenoActivated</name>
+			<label kind="exponentialrate" x="-163" y="17">1</label>
+			<urgent/>
+		</location>
+		<init ref="id4"/>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-102" y="-42">MaskSuccess?</label>
+			<label kind="assignment" x="-102" y="-17">ZenoLoc = 1</label>
+		</transition>
+	</template>
+	<template>
+		<name>Environment</name>
+		<location id="id5" x="-85" y="-153">
+			<name x="-136" y="-170">Safe</name>
+		</location>
+		<location id="id6" x="-85" y="68">
+			<name x="-144" y="43">Unsafe</name>
+		</location>
+		<location id="id7" x="110" y="-153">
+			<name x="127" y="-187">Done</name>
+		</location>
+		<location id="id8" x="-246" y="-34">
+			<name x="-255" y="-25">Safe2</name>
+		</location>
+		<branchpoint id="id9" x="-85" y="-34">
+		</branchpoint>
+		<init ref="id5"/>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-25" y="-25">environment_unsafe!</label>
+			<label kind="assignment" x="-25" y="9">safeEnvironment = false,
+EnvironmentLoc = 2</label>
+			<label kind="probability" x="-85" y="-25">1</label>
+			<nail x="-85" y="-25"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id9"/>
+			<label kind="guard" x="-76" y="-102">AbortObserverLoc == 0</label>
+			<label kind="comments" x="85" y="-102">Vi checker for AbortObserverLoc == 0 fordi ellers så kan vi ikke fyre den nederste edge</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id8"/>
+			<label kind="assignment" x="-229" y="-68">EnvironmentLoc = 1</label>
+			<label kind="probability" x="-170" y="-85">999</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-67" y="-170">MaskSuccess?</label>
+			<label kind="assignment" x="-67" y="-153">EnvironmentLoc = 3</label>
+			<nail x="34" y="-153"/>
+		</transition>
+	</template>
+	<template>
+		<name>PmpUnlockRomExt</name>
+		<location id="id10" x="-34" y="-17">
+			<name x="-44" y="-51">Idle</name>
+		</location>
+		<location id="id11" x="-85" y="85">
+			<name x="-170" y="93">Requested</name>
+		</location>
+		<location id="id12" x="17" y="85">
+			<name x="34" y="93">Locked</name>
+		</location>
+		<init ref="id10"/>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id12"/>
+			<label kind="guard" x="-85" y="119">safeEnvironment &amp;&amp; MemoryLoc == 1</label>
+			<label kind="synchronisation" x="-85" y="136">memoryUnlock!</label>
+			<label kind="assignment" x="-85" y="102">PmpUnlockRomExtLoc = 2</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id10"/>
+			<label kind="guard" x="0" y="0">safeEnvironment &amp;&amp; MaskROM2RotLoc == 14</label>
+			<label kind="synchronisation" x="8" y="17">pmp_done_unlock!</label>
+			<label kind="assignment" x="17" y="34">PmpUnlockRomExtLoc = 0</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id11"/>
+			<label kind="guard" x="-212" y="0">safeEnvironment</label>
+			<label kind="synchronisation" x="-212" y="17">pmp_request_unlock?</label>
+			<label kind="assignment" x="-246" y="34">PmpUnlockRomExtLoc = 1</label>
+		</transition>
+	</template>
+	<template>
+		<name>ROMExt</name>
+		<location id="id13" x="-221" y="85">
+		</location>
+		<location id="id14" x="0" y="0">
+			<name x="-10" y="-34">Initial</name>
+		</location>
+		<location id="id15" x="-51" y="85">
+			<name x="-119" y="51">Success</name>
+		</location>
+		<location id="id16" x="51" y="85">
+			<name x="68" y="59">Failure</name>
+		</location>
+		<location id="id17" x="-51" y="297">
+			<name x="-195" y="297">WriteLockedMemory</name>
+			<urgent/>
+		</location>
+		<location id="id18" x="51" y="297">
+			<urgent/>
+		</location>
+		<init ref="id14"/>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id13"/>
+			<label kind="assignment" x="-195" y="68">ROMExtLoc = 2</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id16"/>
+			<label kind="guard" x="51" y="114">safeEnvironment &amp;&amp; MaskROM2RotLoc == 6</label>
+			<label kind="synchronisation" x="51" y="127">ROMExtFailure!</label>
+			<label kind="assignment" x="51" y="148">ROMExtLoc = 5</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id18"/>
+			<label kind="guard" x="-51" y="314">safeEnvironment</label>
+			<label kind="synchronisation" x="-51" y="331">lower_exception_badly?</label>
+			<label kind="assignment" x="-51" y="348">ROMExtLoc = 4</label>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id17"/>
+			<label kind="select" x="-204" y="93">start : memory_index_t,
+end : memory_index_t</label>
+			<label kind="guard" x="-204" y="127">start &lt;= end &amp;&amp;
+safeEnvironment &amp;&amp; 
+MemoryLoc == 1</label>
+			<label kind="synchronisation" x="-204" y="178">memoryWrite[start][end]!</label>
+			<label kind="assignment" x="-204" y="195">ROMExtLoc = 3</label>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id16"/>
+			<label kind="synchronisation" x="42" y="25">MaskFailure?</label>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id15"/>
+			<label kind="guard" x="-153" y="-34">safeEnvironment</label>
+			<label kind="synchronisation" x="-153" y="-17">MaskSuccess?</label>
+			<label kind="assignment" x="-153" y="0">ROMExtLoc = 1</label>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">MaskROM</name>
+		<declaration>boot_policy_t boot_policy;
+rom_exts_manifests_t rom_exts_manifests;
+int manifestIndex = 0;
+rom_ext_manifest_t currentManifest;
+
+//----------------------
+
+void read_boot_policy(){  
+    boot_policy_t temp_boot_policy;
+    
+    temp_boot_policy.identifier = GlobalMemory[0];
+    //memcpy(boot_policy.identifier, data, 512); 
+
+    temp_boot_policy.rom_ext_slot = GlobalMemory[1];
+    //memcpy(boot_policy.rom_ext_slot, data+(512/sizeof(int)), 2560); 
+
+    //memcpy(boot_policy.success, data+(3072/sizeof(int)), 512); 
+    //memcpy(boot_policy.fail, data+(3584/sizeof(int)), 512);
+    
+    boot_policy = temp_boot_policy;
+    ClearGlobalMemory();
+}
+
+
+void rom_ext_manifests_to_try(boot_policy_t boot_policy){
+    rom_exts_manifests_t temp_manifests;
+
+    rom_ext_manifest_t temp_manifest;
+    int i;
+    temp_manifest.identifier = 0;
+    
+    for(i = 0; i &lt; 10; i++)
+    {
+        temp_manifest.image_code[i] = i + 1;
+    }
+    temp_manifest.entry_point = 11;
+    temp_manifest.signature = 12;
+    //temp_manifest.pub_signature_key.key = 13;
+    
+    temp_manifests.rom_exts_mfs[0] = temp_manifest;
+    temp_manifests.size = 1;
+
+    rom_exts_manifests = temp_manifests; 
+}
+
+int checkRomManifest(rom_ext_manifest_t manifest)
+{
+    return 1;
+}
+
+int checkPublicKey(pub_key_t key)
+{
+    return 1;
+}
+
+void unlockPMPRegion(){
+
+}
+
+
+
+</declaration>
+		<location id="id19" x="-51" y="119">
+		</location>
+		<location id="id20" x="255" y="289">
+		</location>
+		<location id="id21" x="-51" y="289">
+		</location>
+		<location id="id22" x="102" y="119">
+			<committed/>
+		</location>
+		<location id="id23" x="255" y="119">
+		</location>
+		<location id="id24" x="255" y="391">
+		</location>
+		<location id="id25" x="595" y="391">
+		</location>
+		<location id="id26" x="969" y="170">
+		</location>
+		<location id="id27" x="969" y="17">
+		</location>
+		<location id="id28" x="629" y="17">
+		</location>
+		<location id="id29" x="-51" y="17">
+		</location>
+		<init ref="id19"/>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id21"/>
+			<label kind="synchronisation" x="-204" y="110">ROMExtFailure?</label>
+			<nail x="-102" y="68"/>
+			<nail x="-102" y="238"/>
+		</transition>
+		<transition>
+			<source ref="id28"/>
+			<target ref="id20"/>
+			<label kind="assignment" x="518" y="110">manifestIndex++</label>
+			<nail x="629" y="136"/>
+			<nail x="374" y="136"/>
+		</transition>
+		<transition>
+			<source ref="id28"/>
+			<target ref="id29"/>
+			<label kind="synchronisation" x="221" y="-8">MaskSuccess!</label>
+		</transition>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id28"/>
+			<label kind="assignment" x="714" y="-17">unlockPMPRegion()</label>
+		</transition>
+		<transition>
+			<source ref="id26"/>
+			<target ref="id20"/>
+			<label kind="guard" x="671" y="110">!GlobalRsaAnswer</label>
+			<label kind="synchronisation" x="671" y="127">verificationAnswer?</label>
+			<label kind="assignment" x="671" y="144">manifestIndex++</label>
+			<nail x="442" y="170"/>
+		</transition>
+		<transition>
+			<source ref="id26"/>
+			<target ref="id27"/>
+			<label kind="guard" x="807" y="59">GlobalRsaAnswer</label>
+			<label kind="synchronisation" x="807" y="76">verificationAnswer?</label>
+			<label kind="assignment" x="807" y="93">GlobalRsaAnswer = false</label>
+		</transition>
+		<transition>
+			<source ref="id25"/>
+			<target ref="id20"/>
+			<label kind="guard" x="357" y="246">!checkPublicKey(currentManifest.pub_signature_key)</label>
+			<label kind="assignment" x="357" y="263">manifestIndex++</label>
+			<nail x="595" y="289"/>
+		</transition>
+		<transition>
+			<source ref="id25"/>
+			<target ref="id26"/>
+			<label kind="guard" x="646" y="339">checkPublicKey(currentManifest.pub_signature_key)</label>
+			<label kind="synchronisation" x="646" y="356">verificationRequest!</label>
+			<label kind="assignment" x="646" y="373">GlobalManifest = currentManifest</label>
+			<nail x="969" y="391"/>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id20"/>
+			<label kind="guard" x="306" y="314">!checkRomManifest(currentManifest)</label>
+			<label kind="assignment" x="314" y="340">manifestIndex++</label>
+			<nail x="289" y="340"/>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id25"/>
+			<label kind="guard" x="314" y="399">checkRomManifest(currentManifest)</label>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id24"/>
+			<label kind="guard" x="-34" y="340">rom_exts_manifests.size != manifestIndex</label>
+			<label kind="assignment" x="-195" y="357">currentManifest = rom_exts_manifests.rom_exts_mfs[manifestIndex]</label>
+			<nail x="221" y="340"/>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id20"/>
+			<label kind="assignment" x="0" y="178">rom_ext_manifests_to_try(boot_policy)</label>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id23"/>
+			<label kind="assignment" x="119" y="127">read_boot_policy()</label>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id21"/>
+			<label kind="guard" x="-25" y="246">rom_exts_manifests.size == manifestIndex</label>
+			<label kind="synchronisation" x="-25" y="263">MaskFailure!</label>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id22"/>
+			<label kind="synchronisation" x="-34" y="127">memoryRead[0][39]!</label>
+		</transition>
+	</template>
+	<template>
+		<name>MaskROM2</name>
+		<declaration>boot_policy_t boot_policy;
+rom_exts_manifests_t rom_exts_manifests;
+pub_key_t Key;
+int manifestIndex = 0;
+rom_ext_manifest_t currentManifest;
+
+void rom_ext_manifests_to_try(boot_policy_t boot_policy){
+    rom_exts_manifests_t temp_manifests;
+
+    rom_ext_manifest_t temp_manifest;
+    rom_ext_manifest_t temp_manifest2;
+    rom_ext_manifest_t temp_manifest3;
+    int i;
+    temp_manifest.identifier = 0;
+    
+    for(i = 0; i &lt; 10; i++)
+    {
+        temp_manifest.image_code[i] = i + 1;
+        temp_manifest2.image_code[i] = i + 1;
+        temp_manifest3.image_code[i] = i + 1;
+    }
+    temp_manifest.entry_point = 11;
+    temp_manifest.signature = 0; // evt. ændre, så én af manifesternes signature er != 0.
+    //temp_manifest.pub_signature_key.key = 13;
+    
+    temp_manifest2.entry_point = 11;
+    temp_manifest2.signature = 12; // evt. ændre, så én af manifesternes signature er != 0.
+    //temp_manifest2.pub_signature_key.key = 13;
+
+    temp_manifest3.entry_point = 11;
+    temp_manifest3.signature = 3; // evt. ændre, så én af manifesternes signature er != 0.
+    //temp_manifest3.pub_signature_key.key = 13;
+
+    temp_manifests.rom_exts_mfs[0] = temp_manifest ;
+    temp_manifests.rom_exts_mfs[1] = temp_manifest2;
+    temp_manifests.rom_exts_mfs[2] = temp_manifest3;
+    temp_manifests.size = 3;
+
+    rom_exts_manifests = temp_manifests; 
+}
+
+bool CheckRomManifest(rom_ext_manifest_t manifest){
+    return manifest.signature != 0;
+}
+
+bool CheckPublicKey(pub_key_t key){
+    return key.key[0] != 0;
+}
+
+void unlockPMPRegion(){
+}
+
+</declaration>
+		<location id="id30" x="-901" y="-17">
+			<name x="-986" y="-42">StartOfLoop</name>
+		</location>
+		<location id="id31" x="-1207" y="-17">
+		</location>
+		<location id="id32" x="-1071" y="-187">
+			<committed/>
+		</location>
+		<location id="id33" x="-901" y="-187">
+		</location>
+		<location id="id34" x="-901" y="119">
+		</location>
+		<location id="id35" x="-391" y="119">
+		</location>
+		<location id="id36" x="-187" y="-136">
+		</location>
+		<location id="id37" x="-187" y="-289">
+		</location>
+		<location id="id38" x="-561" y="-289">
+		</location>
+		<location id="id39" x="-1207" y="-289">
+			<name x="-1266" y="-323">Success</name>
+		</location>
+		<location id="id40" x="-1207" y="-187">
+		</location>
+		<location id="id41" x="-1207" y="-255">
+		</location>
+		<location id="id42" x="-629" y="119">
+		</location>
+		<location id="id43" x="-187" y="119">
+		</location>
+		<location id="id44" x="-391" y="-289">
+		</location>
+		<init ref="id41"/>
+		<transition>
+			<source ref="id44"/>
+			<target ref="id38"/>
+			<label kind="synchronisation" x="-535" y="-314">pmp_done_unlock?</label>
+		</transition>
+		<transition>
+			<source ref="id43"/>
+			<target ref="id36"/>
+			<label kind="synchronisation" x="-187" y="-85">answer_rom_ext?</label>
+		</transition>
+		<transition>
+			<source ref="id42"/>
+			<target ref="id35"/>
+			<label kind="synchronisation" x="-586" y="127">answer_public_key?</label>
+			<label kind="assignment" x="-586" y="144">Key = GlobalPublicKey,
+ClearGlobalPublicKey()</label>
+		</transition>
+		<transition>
+			<source ref="id41"/>
+			<target ref="id40"/>
+			<label kind="synchronisation" x="-1207" y="-246">memoryRead[0][39]!</label>
+		</transition>
+		<transition>
+			<source ref="id39"/>
+			<target ref="id31"/>
+			<label kind="synchronisation" x="-1360" y="-196">ROMExtFailure?</label>
+			<nail x="-1258" y="-238"/>
+			<nail x="-1258" y="-68"/>
+		</transition>
+		<transition>
+			<source ref="id38"/>
+			<target ref="id30"/>
+			<label kind="guard" x="-671" y="-212">false</label>
+			<label kind="assignment" x="-671" y="-195">manifestIndex++</label>
+			<nail x="-561" y="-170"/>
+			<nail x="-782" y="-170"/>
+		</transition>
+		<transition>
+			<source ref="id38"/>
+			<target ref="id39"/>
+			<label kind="synchronisation" x="-935" y="-314">MaskSuccess!</label>
+		</transition>
+		<transition>
+			<source ref="id37"/>
+			<target ref="id44"/>
+			<label kind="synchronisation" x="-348" y="-314">pmp_request_unlock!</label>
+		</transition>
+		<transition>
+			<source ref="id36"/>
+			<target ref="id30"/>
+			<label kind="guard" x="-391" y="-178">!GlobalRsaAnswer</label>
+			<label kind="assignment" x="-391" y="-161">manifestIndex++</label>
+			<nail x="-714" y="-136"/>
+		</transition>
+		<transition>
+			<source ref="id36"/>
+			<target ref="id37"/>
+			<label kind="guard" x="-178" y="-238">GlobalRsaAnswer</label>
+			<label kind="assignment" x="-178" y="-221">GlobalRsaAnswer = false</label>
+		</transition>
+		<transition>
+			<source ref="id35"/>
+			<target ref="id30"/>
+			<label kind="guard" x="-552" y="-59">!CheckPublicKey(Key)</label>
+			<label kind="assignment" x="-552" y="-42">manifestIndex++</label>
+			<nail x="-391" y="-17"/>
+		</transition>
+		<transition>
+			<source ref="id35"/>
+			<target ref="id43"/>
+			<label kind="guard" x="-373" y="127">CheckPublicKey(Key)</label>
+			<label kind="synchronisation" x="-374" y="152">verify_rom_ext!</label>
+			<label kind="assignment" x="-374" y="178">GlobalManifest = currentManifest,
+GlobalPublicKey = GlobalManifest.pub_signature_key</label>
+		</transition>
+		<transition>
+			<source ref="id34"/>
+			<target ref="id30"/>
+			<label kind="guard" x="-867" y="34">!CheckRomManifest(currentManifest)</label>
+			<label kind="assignment" x="-867" y="51">manifestIndex++</label>
+			<nail x="-867" y="51"/>
+		</transition>
+		<transition>
+			<source ref="id34"/>
+			<target ref="id42"/>
+			<label kind="guard" x="-885" y="127">CheckRomManifest(currentManifest)</label>
+			<label kind="synchronisation" x="-884" y="144">read_public_key!</label>
+			<label kind="assignment" x="-884" y="161">GlobalManifest = currentManifest</label>
+		</transition>
+		<transition>
+			<source ref="id30"/>
+			<target ref="id34"/>
+			<label kind="guard" x="-1207" y="34">rom_exts_manifests.size != manifestIndex</label>
+			<label kind="assignment" x="-1360" y="51">currentManifest = rom_exts_manifests.rom_exts_mfs[manifestIndex]</label>
+			<nail x="-935" y="51"/>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id30"/>
+			<label kind="assignment" x="-1156" y="-127">rom_ext_manifests_to_try(boot_policy)</label>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-1054" y="-246">answer_boot_policy?</label>
+			<label kind="assignment" x="-1054" y="-229">boot_policy = GlobalBootPolicy,
+ClearGlobalBootPolicy()</label>
+		</transition>
+		<transition>
+			<source ref="id30"/>
+			<target ref="id31"/>
+			<label kind="guard" x="-1224" y="-59">rom_exts_manifests.size == manifestIndex</label>
+			<label kind="synchronisation" x="-1181" y="-43">MaskFailure!</label>
+		</transition>
+		<transition>
+			<source ref="id40"/>
+			<target ref="id32"/>
+			<label kind="synchronisation" x="-1198" y="-212">read_boot_policy!</label>
+		</transition>
+	</template>
+	<template>
+		<name>MaskROM2Rot</name>
+		<declaration>boot_policy_t boot_policy;
+rom_exts_manifests_t rom_exts_manifests;
+pub_key_t Key;
+
+int manifestIndex = 0;
+rom_ext_manifest_t currentManifest;
+
+int StartIndex;
+int Offset;
+
+void rom_ext_manifests_to_try(boot_policy_t boot_policy){
+    rom_exts_manifests_t temp_manifests;
+
+    rom_ext_manifest_t temp_manifest;
+    rom_ext_manifest_t temp_manifest2;
+    rom_ext_manifest_t temp_manifest3;
+    int i;
+    temp_manifest.identifier = 0;
+    
+    for(i = 0; i &lt; 10; i++)
+    {
+        temp_manifest.image_code[i] = i + 1;
+        temp_manifest2.image_code[i] = i + 1;
+        temp_manifest3.image_code[i] = i + 1;
+    }
+    temp_manifest.entry_point = 11;
+    temp_manifest.signature = 0; // evt. ændre, så én af manifesternes signature er != 0.
+    for(i = 0; i &lt; 8; i++)
+        temp_manifest.pub_signature_key.key[i] = (i * i * 2) % 21;
+    
+    temp_manifest2.entry_point = 11;
+    temp_manifest2.signature = 12; 
+    for(i = 0; i &lt; 8; i++)
+        temp_manifest2.pub_signature_key.key[i] = (3 * i * + 1) % 21;
+
+    temp_manifest3.entry_point = 11;
+    temp_manifest3.signature = 3; // Magic number
+    for(i = 0; i &lt; 8; i++)
+        temp_manifest3.pub_signature_key.key[i] = (i * 4 + 3) % 21;
+
+    temp_manifests.rom_exts_mfs[0] = temp_manifest ;
+    temp_manifests.rom_exts_mfs[1] = temp_manifest2;
+    temp_manifests.rom_exts_mfs[2] = temp_manifest3;
+    temp_manifests.size = 3;
+
+    rom_exts_manifests = temp_manifests; 
+}
+
+bool CheckManifest(rom_ext_manifest_t manifest){
+    return manifest.signature != 0;
+}
+
+bool CheckPublicKey(pub_key_t key){
+    return key.key[0] != 0;
+}
+
+void unlockPMPRegion(){
+}
+
+bool NoMoreManifests(){
+    return manifestIndex == rom_exts_manifests.size;
+}
+
+void SetManifest(){
+    currentManifest = rom_exts_manifests.rom_exts_mfs[manifestIndex];
+}
+
+void SetGlobalKey(){
+    GlobalPublicKey = GlobalManifest.pub_signature_key;
+}
+
+
+void leak(int startIndex, int offset){
+    int i = 0;
+    for(i = 0; i &lt; offset; i++){
+        leakedByte[i] = Key.key[startIndex + i];
+    }
+}
+</declaration>
+		<location id="id45" x="153" y="-289">
+			<name x="161" y="-314">StartOfLoop</name>
+		</location>
+		<location id="id46" x="153" y="-416">
+			<name x="102" y="-450">Failure</name>
+		</location>
+		<location id="id47" x="-119" y="-484">
+			<name x="-246" y="-518">ReadingBootPolicy</name>
+		</location>
+		<location id="id48" x="-119" y="-289">
+			<name x="-102" y="-340">ReadManifests</name>
+		</location>
+		<location id="id49" x="153" y="-153">
+			<name x="170" y="-170">CheckingManifest</name>
+		</location>
+		<location id="id50" x="153" y="255">
+			<name x="161" y="263">CheckingPublicKey</name>
+		</location>
+		<location id="id51" x="425" y="357">
+			<name x="442" y="331">ManifestVerified</name>
+		</location>
+		<location id="id52" x="425" y="-144">
+			<name x="442" y="-153">RequestPMP</name>
+		</location>
+		<location id="id53" x="425" y="-289">
+			<name x="442" y="-297">FinalJump</name>
+		</location>
+		<location id="id54" x="425" y="-416">
+			<name x="433" y="-441">Success</name>
+		</location>
+		<location id="id55" x="76" y="-484">
+			<name x="42" y="-518">MemoryRead</name>
+		</location>
+		<location id="id56" x="263" y="-484">
+			<name x="272" y="-518">Initial</name>
+		</location>
+		<location id="id57" x="153" y="-42">
+			<name x="34" y="-34">ReadingPublicKey</name>
+		</location>
+		<location id="id58" x="153" y="357">
+			<name x="161" y="331">VerifyingManifest</name>
+		</location>
+		<location id="id59" x="425" y="-221">
+			<name x="442" y="-229">PMPUnlocking</name>
+		</location>
+		<location id="id60" x="153" y="51">
+		</location>
+		<branchpoint id="id61" x="153" y="178">
+		</branchpoint>
+		<init ref="id56"/>
+		<transition>
+			<source ref="id61"/>
+			<target ref="id50"/>
+			<label kind="assignment" x="187" y="195">leak(StartIndex, Offset),
+StartIndex = 0,
+Offset = 0</label>
+			<label kind="probability" x="187" y="178">1</label>
+			<nail x="170" y="212"/>
+		</transition>
+		<transition>
+			<source ref="id61"/>
+			<target ref="id50"/>
+			<label kind="assignment" x="34" y="195">StartIndex = 0,
+Offset = 0</label>
+			<label kind="probability" x="110" y="178">99</label>
+			<nail x="136" y="212"/>
+		</transition>
+		<transition>
+			<source ref="id60"/>
+			<target ref="id61"/>
+			<label kind="select" x="161" y="76">e: int[0, keySize-1],
+offset: int[1, leakSize-1]</label>
+			<label kind="guard" x="161" y="110">e + offset &lt; keySize</label>
+			<label kind="assignment" x="161" y="127">StartIndex = e,
+Offset = offset,
+MaskROM2RotLoc = 10</label>
+		</transition>
+		<transition>
+			<source ref="id57"/>
+			<target ref="id60"/>
+			<label kind="guard" x="161" y="-42">safeEnvironment</label>
+			<label kind="synchronisation" x="161" y="-25">answer_public_key?</label>
+			<label kind="assignment" x="161" y="-8">Key = GlobalPublicKey,
+ClearGlobalPublicKey(),
+MaskROM2RotLoc = 9</label>
+		</transition>
+		<transition>
+			<source ref="id59"/>
+			<target ref="id53"/>
+			<label kind="guard" x="442" y="-280">safeEnvironment</label>
+			<label kind="synchronisation" x="442" y="-263">pmp_done_unlock?</label>
+			<label kind="assignment" x="569" y="-263">MaskROM2RotLoc = 15</label>
+		</transition>
+		<transition>
+			<source ref="id58"/>
+			<target ref="id51"/>
+			<label kind="synchronisation" x="212" y="374">answer_rom_ext?</label>
+			<label kind="assignment" x="171" y="357">MaskROM2RotLoc = 12</label>
+		</transition>
+		<transition>
+			<source ref="id56"/>
+			<target ref="id55"/>
+			<label kind="guard" x="178" y="-527">safeEnvironment &amp;&amp; MemoryLoc == 1</label>
+			<label kind="synchronisation" x="119" y="-509">memoryRead[0][39]!</label>
+			<label kind="assignment" x="94" y="-484">MaskROM2RotLoc = 1</label>
+		</transition>
+		<transition>
+			<source ref="id54"/>
+			<target ref="id46"/>
+			<label kind="synchronisation" x="246" y="-459">ROMExtFailure?</label>
+			<label kind="assignment" x="221" y="-442">MaskROM2RotLoc = 5</label>
+		</transition>
+		<transition>
+			<source ref="id53"/>
+			<target ref="id45"/>
+			<label kind="guard" x="289" y="-331">!safeEnvironment</label>
+			<label kind="assignment" x="289" y="-314">manifestIndex++,
+MaskROM2RotLoc = 4</label>
+		</transition>
+		<transition>
+			<source ref="id53"/>
+			<target ref="id54"/>
+			<label kind="guard" x="433" y="-382">safeEnvironment &amp;&amp; ZenoLoc == 0 &amp;&amp; ROMExtLoc == 0</label>
+			<label kind="synchronisation" x="433" y="-365">MaskSuccess!</label>
+			<label kind="assignment" x="433" y="-348">MaskROM2RotLoc = 6</label>
+		</transition>
+		<transition>
+			<source ref="id52"/>
+			<target ref="id59"/>
+			<label kind="guard" x="442" y="-204">safeEnvironment &amp;&amp; PmpUnlockRomExtLoc == 0</label>
+			<label kind="synchronisation" x="442" y="-187">pmp_request_unlock!</label>
+			<label kind="assignment" x="586" y="-187">MaskROM2RotLoc = 14</label>
+		</transition>
+		<transition>
+			<source ref="id51"/>
+			<target ref="id45"/>
+			<label kind="guard" x="272" y="280">!GlobalRsaAnswer ||
+!safeEnvironment</label>
+			<label kind="assignment" x="280" y="314">manifestIndex++</label>
+			<nail x="408" y="340"/>
+			<nail x="408" y="-272"/>
+			<nail x="170" y="-272"/>
+		</transition>
+		<transition>
+			<source ref="id51"/>
+			<target ref="id52"/>
+			<label kind="guard" x="433" y="17">GlobalRsaAnswer &amp;&amp;
+safeEnvironment</label>
+			<label kind="assignment" x="433" y="255">GlobalRsaAnswer = false,
+MaskROM2RotLoc = 13</label>
+		</transition>
+		<transition>
+			<source ref="id50"/>
+			<target ref="id45"/>
+			<label kind="guard" x="-110" y="-153">!CheckPublicKey(Key) ||
+!safeEnvironment</label>
+			<label kind="assignment" x="-110" y="-119">manifestIndex++,
+MaskROM2RotLoc = 4</label>
+			<nail x="-119" y="255"/>
+			<nail x="-119" y="-102"/>
+			<nail x="-119" y="-272"/>
+			<nail x="136" y="-272"/>
+		</transition>
+		<transition>
+			<source ref="id50"/>
+			<target ref="id58"/>
+			<label kind="guard" x="-59" y="264">CheckPublicKey(Key) &amp;&amp;
+safeEnvironment &amp;&amp; VerifyRomExtLoc == 0</label>
+			<label kind="synchronisation" x="-59" y="297">verify_rom_ext!</label>
+			<label kind="assignment" x="-59" y="314">GlobalManifest = currentManifest,
+SetGlobalKey(),
+MaskROM2RotLoc = 11</label>
+		</transition>
+		<transition>
+			<source ref="id49"/>
+			<target ref="id45"/>
+			<label kind="guard" x="-85" y="-246">!CheckManifest(currentManifest) ||
+!safeEnvironment</label>
+			<label kind="assignment" x="-85" y="-212">manifestIndex++,
+MaskROM2RotLoc = 4</label>
+			<nail x="136" y="-221"/>
+		</transition>
+		<transition>
+			<source ref="id49"/>
+			<target ref="id57"/>
+			<label kind="guard" x="161" y="-144">CheckManifest(currentManifest) &amp;&amp; 
+safeEnvironment &amp;&amp; ReadPubKeyLoc == 0</label>
+			<label kind="synchronisation" x="161" y="-110">read_public_key!</label>
+			<label kind="assignment" x="161" y="-93">GlobalManifest = currentManifest,
+MaskROM2RotLoc = 8</label>
+			<nail x="153" y="-85"/>
+		</transition>
+		<transition>
+			<source ref="id45"/>
+			<target ref="id49"/>
+			<label kind="guard" x="178" y="-238">!NoMoreManifests() &amp;&amp; 
+safeEnvironment</label>
+			<label kind="assignment" x="178" y="-204">SetManifest(),
+MaskROM2RotLoc = 7</label>
+			<nail x="170" y="-221"/>
+		</transition>
+		<transition>
+			<source ref="id48"/>
+			<target ref="id45"/>
+			<label kind="guard" x="-102" y="-323">safeEnvironment</label>
+			<label kind="assignment" x="-102" y="-306">rom_ext_manifests_to_try(boot_policy),
+MaskROM2RotLoc = 4</label>
+		</transition>
+		<transition>
+			<source ref="id47"/>
+			<target ref="id48"/>
+			<label kind="guard" x="-110" y="-433">safeEnvironment</label>
+			<label kind="synchronisation" x="-110" y="-416">answer_boot_policy?</label>
+			<label kind="assignment" x="-110" y="-399">boot_policy = GlobalBootPolicy,
+ClearGlobalBootPolicy(),
+MaskROM2RotLoc = 3</label>
+		</transition>
+		<transition>
+			<source ref="id45"/>
+			<target ref="id46"/>
+			<label kind="guard" x="161" y="-391">(NoMoreManifests() ||
+!safeEnvironment) &amp;&amp; ROMExtLoc == 0</label>
+			<label kind="synchronisation" x="161" y="-357">MaskFailure!</label>
+			<label kind="assignment" x="153" y="-340">MaskROM2RotLoc = 5</label>
+		</transition>
+		<transition>
+			<source ref="id55"/>
+			<target ref="id47"/>
+			<label kind="guard" x="-110" y="-527">safeEnvironment &amp;&amp; ReadBootPolicyLoc == 0</label>
+			<label kind="synchronisation" x="-85" y="-510">read_boot_policy!</label>
+			<label kind="assignment" x="-101" y="-484">MaskROM2RotLoc = 2</label>
+		</transition>
+	</template>
+	<template>
+		<name>ReadBootPolicy</name>
+		<declaration>/*
+boot_policy_t read_boot_policy()
+{
+    int* data = READ_FLASH(0, sizeof(boot_policy_t)); 
+
+    boot_policy_t boot_policy;
+
+    memcpy(&amp;boot_policy.identifier, data, sizeof(boot_policy.identifier));
+    memcpy(&amp;boot_policy.rom_ext_slot, data + 1, sizeof(boot_policy.rom_ext_slot));
+    memcpy(&amp;boot_policy.fail, data + 2, sizeof(boot_policy.fail));
+
+    return boot_policy;
+}
+*/
+
+boot_policy_t readBootPolicy()
+{
+    boot_policy_t result;
+    
+    result.identifier = GlobalMemory[0];
+    result.rom_ext_slot = GlobalMemory[1];
+    ClearGlobalMemory();
+    
+    return result;
+}</declaration>
+		<location id="id62" x="85" y="34">
+			<name x="93" y="8">Idle</name>
+		</location>
+		<location id="id63" x="-85" y="85">
+			<name x="-178" y="93">ResultReady</name>
+		</location>
+		<location id="id64" x="-85" y="-17">
+			<name x="-170" y="-51">Requested</name>
+		</location>
+		<init ref="id62"/>
+		<transition>
+			<source ref="id63"/>
+			<target ref="id62"/>
+			<label kind="guard" x="-59" y="42">safeEnvironment &amp;&amp; MaskROM2RotLoc == 2</label>
+			<label kind="synchronisation" x="-59" y="59">answer_boot_policy!</label>
+			<label kind="assignment" x="-58" y="85">ReadBootPolicyLoc = 0</label>
+			<nail x="-76" y="85"/>
+			<nail x="85" y="85"/>
+		</transition>
+		<transition>
+			<source ref="id62"/>
+			<target ref="id64"/>
+			<label kind="guard" x="-51" y="-59">safeEnvironment</label>
+			<label kind="synchronisation" x="-51" y="-42">read_boot_policy?</label>
+			<label kind="assignment" x="-67" y="-17">ReadBootPolicyLoc = 1</label>
+			<nail x="85" y="-17"/>
+		</transition>
+		<transition>
+			<source ref="id64"/>
+			<target ref="id63"/>
+			<label kind="guard" x="-331" y="0">safeEnvironment &amp;&amp; MemoryLoc == 1</label>
+			<label kind="synchronisation" x="-331" y="17">memoryRead[0][39]!</label>
+			<label kind="assignment" x="-331" y="34">GlobalBootPolicy = readBootPolicy(),
+ReadBootPolicyLoc = 2</label>
+		</transition>
+	</template>
+	<template>
+		<name>ReadPubKey</name>
+		<declaration>rom_ext_manifest_t manifest;
+
+void read_pub_key(rom_ext_manifest_t current_rom_ext_manifest) {
+    int i;
+    pub_key_t result = current_rom_ext_manifest.pub_signature_key;
+    
+
+    manifest.identifier = 0;
+    for(i = 0; i &lt; blockSize; i++)
+    {
+        manifest.image_code[i] = 0;
+    }
+    manifest.entry_point = 0;
+    manifest.signature = 0;
+    manifest.pub_signature_key.key[0] = 0;
+    
+    GlobalPublicKey = result;
+}
+
+typedef struct {
+    int identifier;
+    int image_code[blockSize];
+    int entry_point;
+    int signature;
+    pub_key_t pub_signature_key;
+} rom_ext_manifest_t;</declaration>
+		<location id="id65" x="-17" y="-51">
+			<name x="-27" y="-85">Idle</name>
+		</location>
+		<location id="id66" x="-153" y="0">
+			<name x="-229" y="-8">Reading</name>
+		</location>
+		<init ref="id65"/>
+		<transition>
+			<source ref="id66"/>
+			<target ref="id65"/>
+			<label kind="guard" x="-126" y="0">safeEnvironment &amp;&amp; MaskROM2RotLoc == 8</label>
+			<label kind="synchronisation" x="-127" y="17">answer_public_key!</label>
+			<label kind="assignment" x="-127" y="34">read_pub_key(manifest),
+ReadPubKeyLoc = 0</label>
+			<nail x="-17" y="0"/>
+		</transition>
+		<transition>
+			<source ref="id65"/>
+			<target ref="id66"/>
+			<label kind="guard" x="-161" y="-127">safeEnvironment</label>
+			<label kind="synchronisation" x="-161" y="-110">read_public_key?</label>
+			<label kind="assignment" x="-161" y="-93">manifest = GlobalManifest,
+ClearGlobalManifest(),
+ReadPubKeyLoc = 1</label>
+			<nail x="-153" y="-51"/>
+		</transition>
+	</template>
+	<template>
+		<name>VerifyRomExt</name>
+		<declaration>/*
+int verify_rom_ext_signature(pub_key_t rom_ext_pub_key, rom_ext_manifest_t manifest) {
+    return RSA_VERIFY(rom_ext_pub_key, manifest.image_code, manifest.signature); //0 or 1
+}
+*/
+
+pub_key_t key;
+rom_ext_manifest_t manifest;
+
+bool verificationResult;
+
+void ClearManifest(){
+    int i;
+    manifest.identifier = 0;
+    for(i = 0; i &lt; blockSize; i++)
+    {
+        manifest.image_code[i] = 0;
+    }
+    manifest.entry_point = 0;
+    manifest.signature = 0;
+    manifest.pub_signature_key.key[0] = 0;
+}</declaration>
+		<location id="id67" x="17" y="51">
+			<name x="42" y="42">ReceviedAnswer</name>
+		</location>
+		<location id="id68" x="17" y="-51">
+			<name x="51" y="-76">Idle</name>
+		</location>
+		<location id="id69" x="-119" y="-51">
+			<name x="-204" y="-93">Requested</name>
+		</location>
+		<location id="id70" x="-119" y="51">
+			<name x="-238" y="59">PassedRequest</name>
+		</location>
+		<init ref="id68"/>
+		<transition>
+			<source ref="id67"/>
+			<target ref="id68"/>
+			<label kind="guard" x="34" y="-42">safeEnvironment &amp;&amp; MaskROM2RotLoc == 11</label>
+			<label kind="synchronisation" x="34" y="-25">answer_rom_ext!</label>
+			<label kind="assignment" x="34" y="-8">GlobalRsaAnswer = verificationResult,
+verificationResult = false,
+VerifyRomExtLoc = 0</label>
+		</transition>
+		<transition>
+			<source ref="id70"/>
+			<target ref="id67"/>
+			<label kind="guard" x="-110" y="59">safeEnvironment</label>
+			<label kind="synchronisation" x="-110" y="76">verificationAnswer?</label>
+			<label kind="assignment" x="-110" y="93">verificationResult = GlobalRsaAnswer,
+GlobalRsaAnswer = false,
+VerifyRomExtLoc = 3</label>
+		</transition>
+		<transition>
+			<source ref="id69"/>
+			<target ref="id70"/>
+			<label kind="guard" x="-289" y="-51">safeEnvironment &amp;&amp; RSAModuleLoc == 0</label>
+			<label kind="synchronisation" x="-289" y="-34">verificationRequest!</label>
+			<label kind="assignment" x="-289" y="-17">GlobalManifest = manifest,
+key.key[0] = 0,
+ClearManifest(),
+VerifyRomExtLoc = 2</label>
+		</transition>
+		<transition>
+			<source ref="id68"/>
+			<target ref="id69"/>
+			<label kind="guard" x="-119" y="-178">safeEnvironment</label>
+			<label kind="synchronisation" x="-119" y="-161">verify_rom_ext?</label>
+			<label kind="assignment" x="-119" y="-153">key = GlobalPublicKey,
+manifest = GlobalManifest,
+ClearGlobalPublicKey(),
+ClearGlobalManifest(),
+VerifyRomExtLoc = 1</label>
+		</transition>
+	</template>
+	<template>
+		<name>HMAC</name>
+		<declaration>
+
+
+bit_t secretKey[blockSize];
+bit_t message[blockSize];
+bit_t oPad[blockSize];
+bit_t iPad[blockSize];
+
+bit_t intermediateResult[blockSize*2];
+
+bit_t result[outputSize];
+
+bit_t my_xor(bit_t a, bit_t b){
+    return a != b;
+}
+
+void calculateOPad(){
+    //o_key_pad = secretKey xor [0x5c * blockSize / 8]    Outer padded key
+    int i;
+    for(i = 0; i &lt; blockSize / 8; i++)
+    {
+        oPad[i] = my_xor(secretKey[i],0);
+        oPad[i+1] = my_xor(secretKey[i+1],1);
+        oPad[i+2] = my_xor(secretKey[i+2],0);
+        oPad[i+3] = my_xor(secretKey[i+3],1);
+        oPad[i+4] = my_xor(secretKey[i+4],1);
+        oPad[i+5] = my_xor(secretKey[i+5],1);
+        oPad[i+6] = my_xor(secretKey[i+6],0);
+        oPad[i+7] = my_xor(secretKey[i+7],0);
+    }
+}
+
+void calculateIPad(){
+    //i_key_pad = secretKey xor [0x36 * blockSize / 8]   // Inner padded key
+    int i;
+    for(i = 0; i &lt; blockSize / 8; i++)
+    {
+        iPad[i] = my_xor(secretKey[i],0);
+        iPad[i+1] = my_xor(secretKey[i+1],0);
+        iPad[i+2] = my_xor(secretKey[i+2],1);
+        iPad[i+3] = my_xor(secretKey[i+3],1);
+        iPad[i+4] = my_xor(secretKey[i+4],0);
+        iPad[i+5] = my_xor(secretKey[i+5],1);
+        iPad[i+6] = my_xor(secretKey[i+6],1);
+        iPad[i+7] = my_xor(secretKey[i+7],0);
+    }
+}
+
+void hash(int size) // Takes and returns a bit array
+{
+    int i;
+    for (i = 0; i &lt; outputSize; i++)
+    {
+        result[i] = intermediateResult[i];
+    }
+}
+
+void HMAC() // Assuming the key is always exactly 512 bits long.
+{
+    int i;
+    calculateOPad();
+    calculateIPad();
+    
+    //hash(o_key_pad ∥ hash(i_key_pad ∥ message))
+
+    
+    for(i = 0; i &lt; blockSize; i++)
+    {
+        intermediateResult[i] = iPad[i];
+        intermediateResult[i + blockSize] = message[i];
+    }
+    hash(blockSize * 2);
+    
+    for(i = 0; i &lt; blockSize; i++)
+    {
+        intermediateResult[i] = oPad[i];
+        if (i &lt; outputSize)
+            intermediateResult[i + blockSize] = result[i];
+    }
+    
+    hash(outputSize + blockSize);
+}
+
+void readKey(){}
+
+void readMessage(){}
+</declaration>
+		<location id="id71" x="-595" y="-391">
+		</location>
+		<location id="id72" x="-391" y="-391">
+		</location>
+		<init ref="id71"/>
+		<transition>
+			<source ref="id71"/>
+			<target ref="id72"/>
+			<label kind="guard" x="-544" y="-484">safeEnvironment</label>
+			<label kind="synchronisation" x="-544" y="-467">HMACCalled?</label>
+			<label kind="assignment" x="-544" y="-442">readKey(),
+readMessage()</label>
+		</transition>
+	</template>
+	<template>
+		<name>RSAModule</name>
+		<declaration>bit_t hashResult[outputSize];
+bit_t decryptResult[outputSize];
+const int goodSignature = 3;
+rom_ext_manifest_t manifest;
+
+void readManifest(){
+    manifest = GlobalManifest;
+}
+
+void hash(){ // Takes an array, returns an array
+    int i;
+    for (i = 0; i &lt; outputSize; i++)
+    {
+        hashResult[i] = not manifest.image_code[i];
+    }
+}
+
+void decrypt(int signature, pub_key_t publicKey){
+    int i;
+    for (i = 0; i &lt; outputSize; i++)
+    {
+        decryptResult[i] = not manifest.image_code[i];
+    }
+}
+
+bool verify(){
+    //int i;
+    //decrypt(manifest.signature, manifest.pub_signature_key);
+    
+    //for(i = 0; i &lt; outputSize; i++)
+    //    if (decryptResult[i] != hashResult[i])
+    //        return false;
+
+    return manifest.signature == goodSignature;
+}</declaration>
+		<location id="id73" x="-119" y="-51">
+			<name x="-178" y="-51">Idle</name>
+		</location>
+		<location id="id74" x="-17" y="-51">
+			<name x="17" y="-34">Requested</name>
+		</location>
+		<location id="id75" x="-68" y="-136">
+			<name x="-78" y="-170">ResultReady</name>
+		</location>
+		<init ref="id73"/>
+		<transition>
+			<source ref="id75"/>
+			<target ref="id73"/>
+			<label kind="guard" x="-365" y="-136">safeEnvironment &amp;&amp; VerifyRomExtLoc == 2</label>
+			<label kind="synchronisation" x="-221" y="-119">verificationAnswer!</label>
+			<label kind="assignment" x="-221" y="-102">RSAModuleLoc = 0</label>
+		</transition>
+		<transition>
+			<source ref="id74"/>
+			<target ref="id75"/>
+			<label kind="guard" x="-25" y="-136">safeEnvironment</label>
+			<label kind="assignment" x="-25" y="-119">GlobalRsaAnswer = verify(),
+RSAModuleLoc = 2</label>
+		</transition>
+		<transition>
+			<source ref="id73"/>
+			<target ref="id74"/>
+			<label kind="guard" x="-127" y="-34">safeEnvironment</label>
+			<label kind="synchronisation" x="-127" y="-17">verificationRequest?</label>
+			<label kind="assignment" x="-127" y="-8">readManifest(),
+ClearGlobalManifest(),
+RSAModuleLoc = 1</label>
+		</transition>
+	</template>
+	<template>
+		<name>Memory</name>
+		<declaration>memory_t memory[MemoryMaxIndex];
+bool locked;
+bool exception = false;
+
+int[0,MemoryMaxIndex] nextMemoryCell = 0;
+
+void write(int data){
+    memory[nextMemoryCell] = data;    
+    nextMemoryCell++;
+}
+
+void read(int start, int end){
+    int i;
+    for(i = 0; i &lt;= end - start; i++)
+    {
+        GlobalMemory[i] = memory[start + i];
+    }
+}
+
+void InitMemory(){
+    int i;
+    locked = false;
+    for(i = 0; i &lt; MemoryMaxIndex; i++)   
+    {
+        memory[i] = i;
+    }
+}
+
+void lock(){
+    locked = true;
+}</declaration>
+		<location id="id76" x="-569" y="-8202">
+			<name x="-645" y="-8210">Initialized</name>
+		</location>
+		<location id="id77" x="-569" y="-8338">
+			<name x="-579" y="-8372">Uninitialized</name>
+			<committed/>
+		</location>
+		<location id="id78" x="-569" y="-8075">
+			<name x="-714" y="-8033">WriteLockedMemory</name>
+		</location>
+		<location id="id79" x="-433" y="-8075">
+			<name x="-443" y="-8109">WriteLockedMemory2</name>
+		</location>
+		<init ref="id77"/>
+		<transition>
+			<source ref="id79"/>
+			<target ref="id76"/>
+			<label kind="guard" x="-535" y="-8151">safeEnvironment</label>
+			<label kind="synchronisation" x="-535" y="-8134">lower_exception_badly?</label>
+			<label kind="assignment" x="-535" y="-8117">MemoryLoc = 1</label>
+			<nail x="-450" y="-8092"/>
+			<nail x="-552" y="-8092"/>
+			<nail x="-552" y="-8185"/>
+		</transition>
+		<transition>
+			<source ref="id78"/>
+			<target ref="id79"/>
+			<label kind="guard" x="-552" y="-8058">safeEnvironment &amp;&amp; ExceptionHandlerLoc == 0</label>
+			<label kind="synchronisation" x="-552" y="-8041">raise_exception!</label>
+			<label kind="assignment" x="-552" y="-8024">MemoryLoc = 3</label>
+		</transition>
+		<transition>
+			<source ref="id76"/>
+			<target ref="id78"/>
+			<label kind="select" x="-730" y="-8185">start : memory_index_t,
+end : memory_index_t</label>
+			<label kind="guard" x="-730" y="-8151">start &lt;= end &amp;&amp;
+locked &amp;&amp;
+safeEnvironment</label>
+			<label kind="synchronisation" x="-730" y="-8092">memoryWrite[start][end]?</label>
+			<label kind="assignment" x="-731" y="-8075">MemoryLoc = 2</label>
+		</transition>
+		<transition>
+			<source ref="id76"/>
+			<target ref="id76"/>
+			<label kind="guard" x="-501" y="-8244">safeEnvironment</label>
+			<label kind="synchronisation" x="-501" y="-8227">memoryUnlock?</label>
+			<label kind="assignment" x="-501" y="-8210">lock()</label>
+			<nail x="-552" y="-8253"/>
+			<nail x="-518" y="-8253"/>
+		</transition>
+		<transition>
+			<source ref="id77"/>
+			<target ref="id76"/>
+			<label kind="guard" x="-560" y="-8304">safeEnvironment</label>
+			<label kind="assignment" x="-560" y="-8287">InitMemory(),
+MemoryLoc = 1</label>
+		</transition>
+		<transition>
+			<source ref="id76"/>
+			<target ref="id76"/>
+			<label kind="select" x="-807" y="-8363">start : memory_index_t,
+end : memory_index_t</label>
+			<label kind="guard" x="-807" y="-8329">start &lt; end &amp;&amp;
+end &lt; MemoryMaxIndex &amp;&amp;
+!locked &amp;&amp; 
+safeEnvironment</label>
+			<label kind="synchronisation" x="-807" y="-8261">memoryRead[start][end]?</label>
+			<label kind="assignment" x="-807" y="-8244">read(start,end)</label>
+			<nail x="-586" y="-8253"/>
+			<nail x="-620" y="-8253"/>
+		</transition>
+	</template>
+	<template>
+		<name>ExceptionHandler</name>
+		<declaration>bool badException(){
+    return false;
+}</declaration>
+		<location id="id80" x="-85" y="17">
+			<name x="-127" y="34">HandlingException</name>
+		</location>
+		<location id="id81" x="-85" y="-51">
+			<name x="-95" y="-85">Idle</name>
+		</location>
+		<init ref="id81"/>
+		<transition>
+			<source ref="id80"/>
+			<target ref="id81"/>
+			<label kind="guard" x="-59" y="-51">ROMExtLoc == 3 &amp;&amp; MemoryLoc == 3</label>
+			<label kind="synchronisation" x="-59" y="-34">lower_exception_badly!</label>
+			<label kind="assignment" x="-59" y="-17">ExceptionHandlerLoc = 0</label>
+			<nail x="-68" y="0"/>
+			<nail x="-68" y="0"/>
+			<nail x="-68" y="-34"/>
+			<nail x="-68" y="-34"/>
+		</transition>
+		<transition>
+			<source ref="id81"/>
+			<target ref="id80"/>
+			<label kind="synchronisation" x="-212" y="-25">raise_exception?</label>
+			<label kind="assignment" x="-263" y="-8">ExceptionHandlerLoc = 1</label>
+			<nail x="-102" y="-34"/>
+			<nail x="-102" y="-34"/>
+			<nail x="-102" y="0"/>
+			<nail x="-102" y="0"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+// List one or more processes to be composed into a system.
+system MaskROM2Rot, ROMExt, Memory, RSAModule, ReadBootPolicy, VerifyRomExt,ReadPubKey, PmpUnlockRomExt, Environment,
+       Zeno, AbortObserver, Adversary, ExceptionHandler;
+    </system>
+	<queries>
+		<query>
+			<formula>(Environment.Safe2 &amp;&amp; MaskROM2Rot.currentManifest.pub_signature_key.key[0] == 0) --&gt; MaskROM2Rot.StartOfLoop</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>(Environment.Safe2 &amp;&amp; MaskROM2Rot.currentManifest.signature != 3) --&gt; MaskROM2Rot.StartOfLoop</formula>
+			<comment>3 is the good signature. </comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; MaskROM2Rot.Success || Environment.Unsafe</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A[] Environment.Unsafe == !safeEnvironment </formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A[] Environment.Unsafe imply deadlock</formula>
+			<comment>If the environment is unsafe, the model should freeze, i.e. be deadlocked.</comment>
+		</query>
+		<query>
+			<formula>A[] forall (i : int[0,keySize - 1]) GlobalPublicKey.key[i] == 0</formula>
+			<comment>This query checks that the GLobalPublicKey is never stored for longer than it's needed. The fact that it is verified, says that the public key is cleared whenever it is set. The verificator does not check this query in the middle
+of a transition, but only between transitions.</comment>
+		</query>
+		<query>
+			<formula>Pr[&lt;= 100](&lt;&gt; Environment.Unsafe)</formula>
+			<comment>Forstår ikke hvorfor den ikke vil :-[</comment>
+		</query>
+		<query>
+			<formula>Pr[&lt;= 100](&lt;&gt; exists (index : int[0,keySize - 1]) Adversary.key[index] != 0)</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>simulate 5 [&lt;= 100] (Adversary.counter)</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; Adversary.key[0] != 0</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>ROMExt.WriteLockedMemory --&gt; ROMExt.Failure</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; ROMExt.WriteLockedMemory</formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>
