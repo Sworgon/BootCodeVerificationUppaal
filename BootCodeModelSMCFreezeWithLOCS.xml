@@ -3,8 +3,8 @@
 <nta>
 	<declaration>const int MemoryMax = 40;
 const int MemoryMaxIndex = 40;
-const int blockSize = 512;
-const int outputSize = 256;
+const int blockSize = 8;
+const int outputSize = 8;
 const int keySize = 8;
 
 typedef int[0,MemoryMax-1] memory_t;
@@ -13,7 +13,7 @@ typedef int[0,1] bit_t;
 
 
 /* Locs for template*/
-int AbortObserverLoc;
+int AbortObserverLoc = 0;
 int ZenoLoc;
 int EnvironmentLoc;
 int PmpUnlockRomExtLoc;
@@ -72,6 +72,8 @@ int[0,20] leakedByte[leakSize];
 broadcast chan memoryRead[MemoryMaxIndex][MemoryMaxIndex],
                  memoryWrite[MemoryMaxIndex][MemoryMaxIndex],
                  memoryUnlock;
+
+broadcast chan Click;
 
 broadcast chan MaskSuccess;
 broadcast chan MaskFailure,
@@ -191,7 +193,6 @@ AbortObserverLoc = 1</label>
 		</location>
 		<location id="id4" x="-153" y="-17">
 			<name x="-255" y="-51">ZenoActivated</name>
-			<label kind="exponentialrate" x="-163" y="17">1</label>
 		</location>
 		<init ref="id4"/>
 		<transition>
@@ -205,7 +206,6 @@ AbortObserverLoc = 1</label>
 		<name>Environment</name>
 		<location id="id5" x="-85" y="-153">
 			<name x="-136" y="-170">Safe</name>
-			<label kind="exponentialrate" x="-95" y="-119">1</label>
 			<committed/>
 		</location>
 		<location id="id6" x="-85" y="68">
@@ -223,7 +223,7 @@ AbortObserverLoc = 1</label>
 		<transition>
 			<source ref="id9"/>
 			<target ref="id6"/>
-			<label kind="synchronisation" x="-25" y="-25">environment_unsafe!</label>
+			<label kind="synchronisation" x="-25" y="-8">environment_unsafe!</label>
 			<label kind="assignment" x="-25" y="9">safeEnvironment = false,
 EnvironmentLoc = 2</label>
 			<label kind="probability" x="-68" y="8">1</label>
@@ -232,8 +232,8 @@ EnvironmentLoc = 2</label>
 		<transition>
 			<source ref="id5"/>
 			<target ref="id9"/>
-			<label kind="guard" x="-76" y="-102">AbortObserverLoc == 0</label>
-			<label kind="comments" x="85" y="-102">Vi checker for AbortObserverLoc == 0 fordi ellers så kan vi ikke fyre den nederste edge</label>
+			<label kind="guard" x="-68" y="-102">AbortObserverLoc == 0</label>
+			<label kind="comments" x="-68" y="-76">Vi checker for AbortObserverLoc == 0 fordi ellers så kan vi ikke fyre den nederste edge</label>
 		</transition>
 		<transition>
 			<source ref="id9"/>
@@ -764,7 +764,7 @@ void rom_ext_manifests_to_try(boot_policy_t boot_policy){
     int i;
     temp_manifest.identifier = 0;
 
-    for(i = 0; i &lt; 10; i++)
+    for(i = 0; i &lt; 8; i++)
     {
         temp_manifest.image_code[i] = i + 1;
         temp_manifest2.image_code[i] = i + 1;
@@ -825,99 +825,99 @@ void leak(int startIndex, int offset){
 }
 </declaration>
 		<location id="id45" x="153" y="-289">
-			<name x="161" y="-314">StartOfLoop</name>
-			<label kind="invariant" x="143" y="-272">MaskRomClock &lt;= 1</label>
+			<name x="161" y="-323">StartOfLoop</name>
+			<label kind="invariant" x="161" y="-306">MaskRomClock &lt;= 1</label>
 		</location>
-		<location id="id46" x="153" y="-442">
-			<name x="102" y="-476">Failure</name>
-			<label kind="invariant" x="143" y="-425">MaskRomClock &lt;= 1</label>
+		<location id="id46" x="153" y="-493">
+			<name x="102" y="-544">Failure</name>
+			<label kind="invariant" x="102" y="-527">MaskRomClock &lt;= 1</label>
 		</location>
-		<location id="id47" x="-119" y="-518">
-			<name x="-246" y="-552">ReadingBootPolicy</name>
-			<label kind="invariant" x="-129" y="-501">MaskRomClock &lt;= 1</label>
+		<location id="id47" x="-272" y="-569">
+			<name x="-263" y="-612">ReadingBootPolicy</name>
+			<label kind="invariant" x="-263" y="-595">MaskRomClock &lt;= 1</label>
 		</location>
-		<location id="id48" x="-119" y="-289">
-			<name x="-110" y="-357">ReadManifests</name>
-			<label kind="invariant" x="-129" y="-272">MaskRomClock &lt;= 1</label>
+		<location id="id48" x="-272" y="-289">
+			<name x="-263" y="-348">ReadManifests</name>
+			<label kind="invariant" x="-263" y="-331">MaskRomClock &lt;= 1</label>
 		</location>
-		<location id="id49" x="153" y="-170">
-			<name x="170" y="-187">CheckingManifest</name>
-			<label kind="invariant" x="143" y="-153">MaskRomClock &lt;= 1</label>
+		<location id="id49" x="153" y="-127">
+			<name x="170" y="-144">CheckingManifest</name>
+			<label kind="invariant" x="170" y="-127">MaskRomClock &lt;= 1</label>
 		</location>
-		<location id="id50" x="153" y="255">
-			<name x="161" y="263">CheckingPublicKey</name>
-			<label kind="invariant" x="143" y="272">MaskRomClock &lt;= 1</label>
+		<location id="id50" x="153" y="459">
+			<name x="93" y="476">CheckingPublicKey</name>
+			<label kind="invariant" x="93" y="493">MaskRomClock &lt;= 1</label>
 		</location>
-		<location id="id51" x="425" y="357">
-			<name x="442" y="331">ManifestVerified</name>
-			<label kind="invariant" x="415" y="374">MaskRomClock &lt;= 1</label>
+		<location id="id51" x="501" y="119">
+			<name x="518" y="111">ManifestVerified</name>
+			<label kind="invariant" x="518" y="128">MaskRomClock &lt;= 1</label>
 		</location>
-		<location id="id52" x="425" y="-34">
-			<name x="442" y="-43">RequestPMP</name>
-			<label kind="invariant" x="415" y="-17">MaskRomClock &lt;= 1</label>
+		<location id="id52" x="501" y="-42">
+			<name x="518" y="-60">RequestPMP</name>
+			<label kind="invariant" x="518" y="-42">MaskRomClock &lt;= 1</label>
 		</location>
-		<location id="id53" x="425" y="-289">
-			<name x="442" y="-297">FinalJump</name>
-			<label kind="invariant" x="415" y="-272">MaskRomClock &lt;= 1</label>
+		<location id="id53" x="501" y="-289">
+			<name x="518" y="-297">FinalJump</name>
+			<label kind="invariant" x="552" y="-280">MaskRomClock &lt;= 1</label>
 		</location>
-		<location id="id54" x="425" y="-442">
-			<name x="433" y="-467">Success</name>
-			<label kind="invariant" x="415" y="-425">MaskRomClock &lt;= 1</label>
+		<location id="id54" x="501" y="-493">
+			<name x="518" y="-535">Success</name>
+			<label kind="invariant" x="518" y="-518">MaskRomClock &lt;= 1</label>
 		</location>
-		<location id="id55" x="153" y="-518">
-			<name x="153" y="-552">MemoryRead</name>
-			<label kind="invariant" x="143" y="-501">MaskRomClock &lt;= 1</label>
+		<location id="id55" x="153" y="-569">
+			<name x="119" y="-629">MemoryRead</name>
+			<label kind="invariant" x="102" y="-603">MaskRomClock &lt;= 1</label>
 		</location>
-		<location id="id56" x="442" y="-518">
-			<name x="451" y="-552">Initial</name>
-			<label kind="invariant" x="374" y="-501">MaskRomClock &lt;= 1</label>
+		<location id="id56" x="501" y="-569">
+			<name x="510" y="-603">Initial</name>
+			<label kind="invariant" x="518" y="-578">MaskRomClock &lt;= 1</label>
 		</location>
-		<location id="id57" x="153" y="-42">
-			<name x="34" y="-42">ReadingPublicKey</name>
-			<label kind="invariant" x="34" y="-25">MaskRomClock &lt;= 1</label>
+		<location id="id57" x="153" y="51">
+			<name x="1" y="34">ReadingPublicKey</name>
+			<label kind="invariant" x="-8" y="51">MaskRomClock &lt;= 1</label>
 		</location>
-		<location id="id58" x="153" y="357">
-			<name x="161" y="331">VerifyingManifest</name>
-			<label kind="invariant" x="93" y="365">MaskRomClock &lt;= 1</label>
+		<location id="id58" x="501" y="246">
+			<name x="518" y="238">VerifyingManifest</name>
+			<label kind="invariant" x="518" y="254">MaskRomClock &lt;= 1</label>
 		</location>
-		<location id="id59" x="425" y="-162">
-			<name x="442" y="-170">PMPUnlocking</name>
-			<label kind="invariant" x="415" y="-145">MaskRomClock &lt;= 1</label>
+		<location id="id59" x="501" y="-178">
+			<name x="518" y="-195">PMPUnlocking</name>
+			<label kind="invariant" x="518" y="-178">MaskRomClock &lt;= 1</label>
 		</location>
-		<location id="id60" x="153" y="51">
-			<name x="68" y="25">MaybeLeak</name>
-			<label kind="invariant" x="34" y="85">MaskRomClock &lt;= 1</label>
+		<location id="id60" x="153" y="161">
+			<name x="42" y="144">MaybeLeak</name>
+			<label kind="invariant" x="-17" y="161">MaskRomClock &lt;= 1</label>
 		</location>
-		<branchpoint id="id61" x="153" y="178">
+		<branchpoint id="id61" x="153" y="331">
 		</branchpoint>
 		<init ref="id56"/>
 		<transition>
 			<source ref="id61"/>
 			<target ref="id50"/>
-			<label kind="assignment" x="187" y="195">leak(StartIndex, Offset),
+			<label kind="assignment" x="178" y="348">leak(StartIndex, Offset),
 StartIndex = 0,
 Offset = 0</label>
-			<label kind="probability" x="187" y="178">1</label>
-			<nail x="170" y="212"/>
-			<nail x="170" y="212"/>
+			<label kind="probability" x="170" y="399">1</label>
+			<nail x="170" y="391"/>
+			<nail x="170" y="391"/>
 		</transition>
 		<transition>
 			<source ref="id61"/>
 			<target ref="id50"/>
-			<label kind="assignment" x="34" y="195">StartIndex = 0,
+			<label kind="assignment" x="34" y="365">StartIndex = 0,
 Offset = 0</label>
-			<label kind="probability" x="110" y="178">99</label>
-			<nail x="136" y="212"/>
-			<nail x="136" y="212"/>
+			<label kind="probability" x="119" y="399">99</label>
+			<nail x="136" y="391"/>
+			<nail x="136" y="391"/>
 		</transition>
 		<transition>
 			<source ref="id60"/>
 			<target ref="id61"/>
-			<label kind="select" x="161" y="59">e: int[0, keySize-1],
+			<label kind="select" x="161" y="170">e: int[0, keySize-1],
 offset: int[1, leakSize-1]</label>
-			<label kind="guard" x="161" y="93">e + offset &lt; keySize &amp;&amp;
+			<label kind="guard" x="161" y="204">e + offset &lt; keySize &amp;&amp;
 MaskRomClock == 1</label>
-			<label kind="assignment" x="161" y="127">StartIndex = e,
+			<label kind="assignment" x="161" y="246">StartIndex = e,
 Offset = offset,
 MaskROM2RotLoc = 10,
 MaskRomClock = 0</label>
@@ -925,8 +925,8 @@ MaskRomClock = 0</label>
 		<transition>
 			<source ref="id57"/>
 			<target ref="id60"/>
-			<label kind="synchronisation" x="161" y="-8">answer_public_key?</label>
-			<label kind="assignment" x="161" y="0">Key = GlobalPublicKey,
+			<label kind="synchronisation" x="170" y="59">answer_public_key?</label>
+			<label kind="assignment" x="170" y="76">Key = GlobalPublicKey,
 ClearGlobalPublicKey(),
 MaskROM2RotLoc = 9,
 MaskRomClock = 0</label>
@@ -934,165 +934,169 @@ MaskRomClock = 0</label>
 		<transition>
 			<source ref="id59"/>
 			<target ref="id53"/>
-			<label kind="synchronisation" x="442" y="-221">pmp_done_unlock?</label>
-			<label kind="assignment" x="442" y="-195">MaskROM2RotLoc = 15,
+			<label kind="synchronisation" x="518" y="-255">pmp_done_unlock?</label>
+			<label kind="assignment" x="518" y="-238">MaskROM2RotLoc = 15,
 MaskRomClock = 0</label>
 		</transition>
 		<transition>
 			<source ref="id58"/>
 			<target ref="id51"/>
-			<label kind="synchronisation" x="178" y="425">answer_rom_ext?</label>
-			<label kind="assignment" x="178" y="391">MaskROM2RotLoc = 12,
+			<label kind="synchronisation" x="510" y="204">answer_rom_ext?</label>
+			<label kind="assignment" x="510" y="161">MaskROM2RotLoc = 12,
 MaskRomClock = 0</label>
 		</transition>
 		<transition>
 			<source ref="id56"/>
 			<target ref="id55"/>
-			<label kind="guard" x="297" y="-629">safeEnvironment &amp;&amp; 
+			<label kind="guard" x="255" y="-688">safeEnvironment &amp;&amp; 
 MemoryLoc == 1 &amp;&amp;
 MaskRomClock == 1</label>
-			<label kind="synchronisation" x="297" y="-561">memoryRead[0][39]!</label>
-			<label kind="assignment" x="289" y="-544">MaskROM2RotLoc = 1,
+			<label kind="synchronisation" x="255" y="-637">memoryRead[0][39]!</label>
+			<label kind="assignment" x="255" y="-620">MaskROM2RotLoc = 1,
 MaskRomClock = 0</label>
 		</transition>
 		<transition>
 			<source ref="id54"/>
 			<target ref="id46"/>
-			<label kind="synchronisation" x="187" y="-476">ROMExtFailure?</label>
-			<label kind="assignment" x="187" y="-459">MaskROM2RotLoc = 5,
+			<label kind="synchronisation" x="246" y="-552">ROMExtFailure?</label>
+			<label kind="assignment" x="246" y="-535">MaskROM2RotLoc = 5,
 MaskRomClock = 0</label>
 		</transition>
 		<transition>
 			<source ref="id53"/>
 			<target ref="id45"/>
-			<label kind="guard" x="297" y="-365">!safeEnvironment &amp;&amp;
-MaskRomClock == 1</label>
-			<label kind="assignment" x="297" y="-331">manifestIndex++,
+			<label kind="guard" x="306" y="-365">MaskRomClock == 1</label>
+			<label kind="assignment" x="306" y="-348">manifestIndex++,
 MaskROM2RotLoc = 4,
 MaskRomClock = 0</label>
 		</transition>
 		<transition>
 			<source ref="id53"/>
 			<target ref="id54"/>
-			<label kind="guard" x="433" y="-425">safeEnvironment &amp;&amp; 
-ZenoLoc == 0 &amp;&amp; 
+			<label kind="guard" x="510" y="-476">ZenoLoc == 0 &amp;&amp; 
 ROMExtLoc == 0 &amp;&amp;
 MaskRomClock == 1</label>
-			<label kind="synchronisation" x="433" y="-348">MaskSuccess!</label>
-			<label kind="assignment" x="433" y="-331">MaskROM2RotLoc = 6,
+			<label kind="synchronisation" x="510" y="-416">MaskSuccess!</label>
+			<label kind="assignment" x="510" y="-399">MaskROM2RotLoc = 6,
 MaskRomClock = 0</label>
 		</transition>
 		<transition>
 			<source ref="id52"/>
 			<target ref="id59"/>
-			<label kind="guard" x="569" y="-144">safeEnvironment &amp;&amp; 
-PmpUnlockRomExtLoc == 0 &amp;&amp;
+			<label kind="guard" x="510" y="-153">PmpUnlockRomExtLoc == 0 &amp;&amp;
 MaskRomClock == 1</label>
-			<label kind="synchronisation" x="569" y="-85">pmp_request_unlock!</label>
-			<label kind="assignment" x="578" y="-68">MaskROM2RotLoc = 14,
+			<label kind="synchronisation" x="510" y="-119">pmp_request_unlock!</label>
+			<label kind="assignment" x="510" y="-102">MaskROM2RotLoc = 14,
 MaskRomClock = 0</label>
 		</transition>
 		<transition>
 			<source ref="id51"/>
 			<target ref="id45"/>
-			<label kind="guard" x="272" y="263">!GlobalRsaAnswer ||
-!safeEnvironment &amp;&amp;
+			<label kind="guard" x="331" y="8">!GlobalRsaAnswer &amp;&amp;
 MaskRomClock == 1</label>
-			<label kind="assignment" x="272" y="314">manifestIndex++,
+			<label kind="assignment" x="331" y="42">manifestIndex++,
 MaskRomClock = 0</label>
-			<nail x="408" y="340"/>
-			<nail x="408" y="340"/>
-			<nail x="408" y="-272"/>
+			<nail x="484" y="102"/>
+			<nail x="484" y="102"/>
+			<nail x="484" y="102"/>
+			<nail x="484" y="102"/>
+			<nail x="484" y="-272"/>
+			<nail x="484" y="-272"/>
+			<nail x="170" y="-272"/>
 			<nail x="170" y="-272"/>
 		</transition>
 		<transition>
 			<source ref="id51"/>
 			<target ref="id52"/>
-			<label kind="guard" x="433" y="17">GlobalRsaAnswer &amp;&amp;
-safeEnvironment &amp;&amp;
+			<label kind="guard" x="527" y="8">GlobalRsaAnswer &amp;&amp;
 MaskRomClock == 1</label>
-			<label kind="assignment" x="433" y="255">GlobalRsaAnswer = false,
+			<label kind="assignment" x="527" y="42">GlobalRsaAnswer = false,
 MaskROM2RotLoc = 13,
 MaskRomClock = 0</label>
+			<nail x="518" y="102"/>
+			<nail x="518" y="102"/>
+			<nail x="518" y="-17"/>
+			<nail x="518" y="-17"/>
 		</transition>
 		<transition>
 			<source ref="id50"/>
 			<target ref="id45"/>
-			<label kind="guard" x="-110" y="-8">!CheckPublicKey(Key) ||
-!safeEnvironment &amp;&amp;
+			<label kind="guard" x="-264" y="-26">!CheckPublicKey(Key) &amp;&amp;
 MaskRomClock == 1</label>
-			<label kind="assignment" x="-110" y="43">manifestIndex++,
+			<label kind="assignment" x="-264" y="8">manifestIndex++,
 MaskROM2RotLoc = 4,
 MaskRomClock = 0</label>
-			<nail x="-119" y="255"/>
-			<nail x="-119" y="-102"/>
-			<nail x="-119" y="-272"/>
+			<nail x="-59" y="459"/>
+			<nail x="-59" y="459"/>
+			<nail x="-59" y="68"/>
+			<nail x="-59" y="68"/>
+			<nail x="-272" y="68"/>
+			<nail x="-272" y="68"/>
+			<nail x="-272" y="-272"/>
+			<nail x="-272" y="-272"/>
+			<nail x="136" y="-272"/>
 			<nail x="136" y="-272"/>
 		</transition>
 		<transition>
 			<source ref="id50"/>
 			<target ref="id58"/>
-			<label kind="guard" x="-59" y="264">CheckPublicKey(Key) &amp;&amp;
-safeEnvironment &amp;&amp; 
+			<label kind="guard" x="518" y="298">CheckPublicKey(Key) &amp;&amp;
 VerifyRomExtLoc == 0 &amp;&amp;
 MaskRomClock == 1</label>
-			<label kind="synchronisation" x="-59" y="340">verify_rom_ext!</label>
-			<label kind="assignment" x="-59" y="348">GlobalManifest = currentManifest,
+			<label kind="synchronisation" x="518" y="348">verify_rom_ext!</label>
+			<label kind="assignment" x="518" y="366">GlobalManifest = currentManifest,
 SetGlobalKey(),
 MaskROM2RotLoc = 11,
 MaskRomClock = 0</label>
+			<nail x="501" y="459"/>
+			<nail x="501" y="459"/>
 		</transition>
 		<transition>
 			<source ref="id49"/>
 			<target ref="id45"/>
-			<label kind="guard" x="-76" y="-255">!CheckManifest(currentManifest) ||
-!safeEnvironment &amp;&amp;
+			<label kind="guard" x="-110" y="-246">!CheckManifest(currentManifest) &amp;&amp;
 MaskRomClock == 1</label>
-			<label kind="assignment" x="-76" y="-204">manifestIndex++,
+			<label kind="assignment" x="-110" y="-212">manifestIndex++,
 MaskROM2RotLoc = 4,
 MaskRomClock = 0</label>
-			<nail x="136" y="-221"/>
-			<nail x="136" y="-221"/>
+			<nail x="136" y="-204"/>
+			<nail x="136" y="-204"/>
 		</transition>
 		<transition>
 			<source ref="id49"/>
 			<target ref="id57"/>
-			<label kind="guard" x="161" y="-170">CheckManifest(currentManifest) &amp;&amp;
-safeEnvironment &amp;&amp; 
+			<label kind="guard" x="161" y="-93">CheckManifest(currentManifest) &amp;&amp;
 ReadPubKeyLoc == 0 &amp;&amp;
 MaskRomClock == 1</label>
-			<label kind="synchronisation" x="161" y="-102">read_public_key!</label>
-			<label kind="assignment" x="161" y="-85">GlobalManifest = currentManifest,
+			<label kind="synchronisation" x="161" y="-42">read_public_key!</label>
+			<label kind="assignment" x="161" y="-25">GlobalManifest = currentManifest,
 MaskROM2RotLoc = 8,
 MaskRomClock = 0</label>
-			<nail x="153" y="-85"/>
 		</transition>
 		<transition>
 			<source ref="id45"/>
 			<target ref="id49"/>
-			<label kind="guard" x="178" y="-255">!NoMoreManifests() &amp;&amp;
-safeEnvironment &amp;&amp;
+			<label kind="guard" x="187" y="-263">!NoMoreManifests() &amp;&amp;
 MaskRomClock == 1</label>
-			<label kind="assignment" x="178" y="-221">SetManifest(),
+			<label kind="assignment" x="187" y="-229">SetManifest(),
 MaskROM2RotLoc = 7,
 MaskRomClock = 0</label>
-			<nail x="170" y="-221"/>
-			<nail x="170" y="-221"/>
+			<nail x="170" y="-204"/>
+			<nail x="170" y="-204"/>
 		</transition>
 		<transition>
 			<source ref="id48"/>
 			<target ref="id45"/>
-			<label kind="guard" x="-110" y="-340">safeEnvironment &amp;&amp;
-MaskRomClock == 1</label>
-			<label kind="assignment" x="-110" y="-306">rom_ext_manifests_to_try(boot_policy),
+			<label kind="guard" x="-119" y="-365">MaskRomClock == 1</label>
+			<label kind="assignment" x="-119" y="-348">rom_ext_manifests_to_try(boot_policy),
 MaskROM2RotLoc = 4,
 MaskRomClock = 0</label>
 		</transition>
 		<transition>
 			<source ref="id47"/>
 			<target ref="id48"/>
-			<label kind="synchronisation" x="-110" y="-442">answer_boot_policy?</label>
-			<label kind="assignment" x="-110" y="-425">boot_policy = GlobalBootPolicy,
+			<label kind="synchronisation" x="-246" y="-552">answer_boot_policy?</label>
+			<label kind="assignment" x="-246" y="-535">boot_policy = GlobalBootPolicy,
 ClearGlobalBootPolicy(),
 MaskROM2RotLoc = 3,
 MaskRomClock = 0</label>
@@ -1100,22 +1104,20 @@ MaskRomClock = 0</label>
 		<transition>
 			<source ref="id45"/>
 			<target ref="id46"/>
-			<label kind="guard" x="161" y="-433">(NoMoreManifests() ||
-!safeEnvironment) &amp;&amp; 
+			<label kind="guard" x="161" y="-459">NoMoreManifests() &amp;&amp; 
 ROMExtLoc == 0 &amp;&amp;
 MaskRomClock == 1</label>
-			<label kind="synchronisation" x="161" y="-357">MaskFailure!</label>
-			<label kind="assignment" x="153" y="-340">MaskROM2RotLoc = 5,
+			<label kind="synchronisation" x="161" y="-408">MaskFailure!</label>
+			<label kind="assignment" x="161" y="-391">MaskROM2RotLoc = 5,
 MaskRomClock = 0</label>
 		</transition>
 		<transition>
 			<source ref="id55"/>
 			<target ref="id47"/>
-			<label kind="guard" x="-102" y="-620">safeEnvironment &amp;&amp; 
-ReadBootPolicyLoc == 0 &amp;&amp;
+			<label kind="guard" x="-102" y="-680">ReadBootPolicyLoc == 0 &amp;&amp;
 MaskRomClock == 1</label>
-			<label kind="synchronisation" x="-102" y="-569">read_boot_policy!</label>
-			<label kind="assignment" x="-102" y="-552">MaskROM2RotLoc = 2,
+			<label kind="synchronisation" x="-102" y="-646">read_boot_policy!</label>
+			<label kind="assignment" x="-102" y="-629">MaskROM2RotLoc = 2,
 MaskRomClock = 0</label>
 		</transition>
 	</template>
@@ -1146,40 +1148,42 @@ boot_policy_t readBootPolicy()
 
     return result;
 }</declaration>
-		<location id="id62" x="85" y="34">
-			<name x="93" y="8">Idle</name>
+		<location id="id62" x="85" y="-17">
+			<name x="93" y="-43">Idle</name>
 		</location>
-		<location id="id63" x="-85" y="136">
-			<name x="-178" y="144">ResultReady</name>
+		<location id="id63" x="-153" y="136">
+			<name x="-263" y="110">ResultReady</name>
+			<label kind="invariant" x="-297" y="127">MaskRomClock &lt;= 1</label>
 		</location>
-		<location id="id64" x="-85" y="-17">
-			<name x="-170" y="-51">Requested</name>
+		<location id="id64" x="-153" y="-17">
+			<name x="-272" y="-68">Requested</name>
+			<label kind="invariant" x="-306" y="-51">MaskRomClock &lt;= 1</label>
 		</location>
 		<init ref="id62"/>
 		<transition>
 			<source ref="id63"/>
 			<target ref="id62"/>
-			<label kind="guard" x="-68" y="51">safeEnvironment &amp;&amp; 
+			<label kind="guard" x="-93" y="51">safeEnvironment &amp;&amp; 
 MaskROM2RotLoc == 2 &amp;&amp;
 MaskRomClock == 1</label>
-			<label kind="synchronisation" x="-68" y="102">answer_boot_policy!</label>
-			<label kind="assignment" x="-68" y="119">ReadBootPolicyLoc = 0</label>
+			<label kind="synchronisation" x="-93" y="102">answer_boot_policy!</label>
+			<label kind="assignment" x="-93" y="119">ReadBootPolicyLoc = 0</label>
+			<nail x="85" y="136"/>
 			<nail x="85" y="136"/>
 		</transition>
 		<transition>
 			<source ref="id62"/>
 			<target ref="id64"/>
-			<label kind="guard" x="-51" y="-59">safeEnvironment</label>
-			<label kind="synchronisation" x="-51" y="-42">read_boot_policy?</label>
-			<label kind="assignment" x="-68" y="-17">ReadBootPolicyLoc = 1</label>
-			<nail x="85" y="-17"/>
+			<label kind="guard" x="-102" y="-68">safeEnvironment</label>
+			<label kind="synchronisation" x="-102" y="-51">read_boot_policy?</label>
+			<label kind="assignment" x="-102" y="-34">ReadBootPolicyLoc = 1</label>
 		</transition>
 		<transition>
 			<source ref="id64"/>
 			<target ref="id63"/>
-			<label kind="guard" x="-331" y="0">safeEnvironment &amp;&amp; MemoryLoc == 1</label>
-			<label kind="synchronisation" x="-331" y="17">memoryRead[0][39]!</label>
-			<label kind="assignment" x="-331" y="34">GlobalBootPolicy = readBootPolicy(),
+			<label kind="guard" x="-399" y="0">safeEnvironment &amp;&amp; MemoryLoc == 1</label>
+			<label kind="synchronisation" x="-399" y="17">memoryRead[0][39]!</label>
+			<label kind="assignment" x="-399" y="34">GlobalBootPolicy = readBootPolicy(),
 ReadBootPolicyLoc = 2</label>
 		</transition>
 	</template>
@@ -1214,30 +1218,30 @@ typedef struct {
 		<location id="id65" x="-17" y="-51">
 			<name x="-27" y="-85">Idle</name>
 		</location>
-		<location id="id66" x="-153" y="0">
-			<name x="-229" y="-8">Reading</name>
+		<location id="id66" x="-221" y="0">
+			<name x="-297" y="-8">Reading</name>
 		</location>
 		<init ref="id65"/>
 		<transition>
 			<source ref="id66"/>
 			<target ref="id65"/>
-			<label kind="guard" x="-127" y="8">safeEnvironment &amp;&amp; 
+			<label kind="guard" x="-195" y="7">safeEnvironment &amp;&amp; 
 MaskROM2RotLoc == 8 &amp;&amp;
 MaskRomClock == 1</label>
-			<label kind="synchronisation" x="-127" y="59">answer_public_key!</label>
-			<label kind="assignment" x="-127" y="68">read_pub_key(manifest),
+			<label kind="synchronisation" x="-195" y="59">answer_public_key!</label>
+			<label kind="assignment" x="-195" y="76">read_pub_key(manifest),
 ReadPubKeyLoc = 0</label>
 			<nail x="-17" y="0"/>
 		</transition>
 		<transition>
 			<source ref="id65"/>
 			<target ref="id66"/>
-			<label kind="guard" x="-161" y="-127">safeEnvironment</label>
-			<label kind="synchronisation" x="-161" y="-110">read_public_key?</label>
-			<label kind="assignment" x="-161" y="-93">manifest = GlobalManifest,
+			<label kind="guard" x="-212" y="-144">safeEnvironment</label>
+			<label kind="synchronisation" x="-212" y="-127">read_public_key?</label>
+			<label kind="assignment" x="-212" y="-110">manifest = GlobalManifest,
 ClearGlobalManifest(),
 ReadPubKeyLoc = 1</label>
-			<nail x="-153" y="-51"/>
+			<nail x="-221" y="-51"/>
 		</transition>
 	</template>
 	<template>
@@ -1264,45 +1268,45 @@ void ClearManifest(){
     manifest.signature = 0;
     manifest.pub_signature_key.key[0] = 0;
 }</declaration>
-		<location id="id67" x="17" y="51">
-			<name x="42" y="42">ReceviedAnswer</name>
+		<location id="id67" x="144" y="110">
+			<name x="153" y="118">ReceviedAnswer</name>
 		</location>
-		<location id="id68" x="17" y="-51">
-			<name x="51" y="-76">Idle</name>
+		<location id="id68" x="144" y="-51">
+			<name x="153" y="-76">Idle</name>
 		</location>
 		<location id="id69" x="-119" y="-51">
 			<name x="-204" y="-93">Requested</name>
 		</location>
-		<location id="id70" x="-119" y="51">
-			<name x="-238" y="59">PassedRequest</name>
+		<location id="id70" x="-119" y="110">
+			<name x="-238" y="118">PassedRequest</name>
 		</location>
 		<init ref="id68"/>
 		<transition>
 			<source ref="id67"/>
 			<target ref="id68"/>
-			<label kind="guard" x="102" y="-76">safeEnvironment &amp;&amp; 
+			<label kind="guard" x="153" y="-34">safeEnvironment &amp;&amp; 
 MaskROM2RotLoc == 11 &amp;&amp;
 MaskRomClock == 1</label>
-			<label kind="synchronisation" x="102" y="-25">answer_rom_ext!</label>
-			<label kind="assignment" x="102" y="-8">GlobalRsaAnswer = verificationResult,
+			<label kind="synchronisation" x="153" y="17">answer_rom_ext!</label>
+			<label kind="assignment" x="153" y="34">GlobalRsaAnswer = verificationResult,
 verificationResult = false,
 VerifyRomExtLoc = 0</label>
 		</transition>
 		<transition>
 			<source ref="id70"/>
 			<target ref="id67"/>
-			<label kind="guard" x="-110" y="59">safeEnvironment</label>
-			<label kind="synchronisation" x="-110" y="76">verificationAnswer?</label>
-			<label kind="assignment" x="-110" y="93">verificationResult = GlobalRsaAnswer,
+			<label kind="guard" x="-93" y="119">safeEnvironment</label>
+			<label kind="synchronisation" x="-93" y="136">verificationAnswer?</label>
+			<label kind="assignment" x="-93" y="153">verificationResult = GlobalRsaAnswer,
 GlobalRsaAnswer = false,
 VerifyRomExtLoc = 3</label>
 		</transition>
 		<transition>
 			<source ref="id69"/>
 			<target ref="id70"/>
-			<label kind="guard" x="-289" y="-51">safeEnvironment &amp;&amp; RSAModuleLoc == 0</label>
-			<label kind="synchronisation" x="-289" y="-34">verificationRequest!</label>
-			<label kind="assignment" x="-289" y="-17">GlobalManifest = manifest,
+			<label kind="guard" x="-382" y="-34">safeEnvironment &amp;&amp; RSAModuleLoc == 0</label>
+			<label kind="synchronisation" x="-382" y="-17">verificationRequest!</label>
+			<label kind="assignment" x="-382" y="0">GlobalManifest = manifest,
 key.key[0] = 0,
 ClearManifest(),
 VerifyRomExtLoc = 2</label>
@@ -1310,9 +1314,9 @@ VerifyRomExtLoc = 2</label>
 		<transition>
 			<source ref="id68"/>
 			<target ref="id69"/>
-			<label kind="guard" x="-119" y="-178">safeEnvironment</label>
-			<label kind="synchronisation" x="-119" y="-161">verify_rom_ext?</label>
-			<label kind="assignment" x="-119" y="-153">key = GlobalPublicKey,
+			<label kind="guard" x="-59" y="-187">safeEnvironment</label>
+			<label kind="synchronisation" x="-59" y="-170">verify_rom_ext?</label>
+			<label kind="assignment" x="-59" y="-153">key = GlobalPublicKey,
 manifest = GlobalManifest,
 ClearGlobalPublicKey(),
 ClearGlobalManifest(),
@@ -1636,9 +1640,8 @@ safeEnvironment</label>
 	</template>
 	<system>// Place template instantiations here.
 // List one or more processes to be composed into a system.
-system MaskROM2Rot, ROMExt, Memory, RSAModule, ReadBootPolicy, VerifyRomExt,ReadPubKey, PmpUnlockRomExt, Environment,
-       Zeno, AbortObserver, Adversary, ExceptionHandler;
-    </system>
+//system MaskROM2Rot, ROMExt, Memory, RSAModule, ReadBootPolicy, VerifyRomExt, ReadPubKey, PmpUnlockRomExt, Environment, Zeno, AbortObserver, Adversary, ExceptionHandler;
+system FaultyButton, Light;  </system>
 	<queries>
 		<query>
 			<formula>(Environment.Safe2 &amp;&amp; MaskROM2Rot.currentManifest.pub_signature_key.key[0] == 0) --&gt; MaskROM2Rot.StartOfLoop</formula>
