@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+
+broadcast chan Click;</declaration>
+	<template>
+		<name x="5" y="5">Button</name>
+		<declaration>// Place local declarations here.
+
+int[0,5] shocks = 0;</declaration>
+		<location id="id0" x="-93" y="-17">
+			<label kind="exponentialrate" x="-118" y="-25">1</label>
+		</location>
+		<branchpoint id="id1" x="17" y="-17">
+		</branchpoint>
+		<init ref="id0"/>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-68" y="17">Click!</label>
+			<label kind="assignment" x="-76" y="34">shocks = 0</label>
+			<label kind="probability" x="8" y="17">9</label>
+			<nail x="17" y="17"/>
+			<nail x="-93" y="17"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="assignment" x="-93" y="-68">shocks += 1</label>
+			<label kind="probability" x="8" y="-68">1</label>
+			<nail x="17" y="-51"/>
+			<nail x="-93" y="-51"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-76" y="-34">shocks &lt; 4</label>
+		</transition>
+	</template>
+	<template>
+		<name>Light</name>
+		<parameter>const int[0,8] light_id</parameter>
+		<location id="id2" x="-51" y="-17">
+			<name x="-61" y="-51">Off</name>
+		</location>
+		<location id="id3" x="17" y="-17">
+			<name x="7" y="-51">On</name>
+		</location>
+		<init ref="id2"/>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-34" y="-59">Click?</label>
+			<nail x="-17" y="-42"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-34" y="0">Click?</label>
+			<nail x="-17" y="8"/>
+		</transition>
+	</template>
+	<system>
+system Button, Light;
+    </system>
+	<queries>
+		<query>
+			<formula>Pr[&lt;= 1000000] (&lt;&gt; Button.shocks == 4)</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; Button.shocks == 5</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; deadlock</formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>
