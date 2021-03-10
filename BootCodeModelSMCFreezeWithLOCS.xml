@@ -1640,8 +1640,8 @@ safeEnvironment</label>
 	</template>
 	<system>// Place template instantiations here.
 // List one or more processes to be composed into a system.
-//system MaskROM2Rot, ROMExt, Memory, RSAModule, ReadBootPolicy, VerifyRomExt, ReadPubKey, PmpUnlockRomExt, Environment, Zeno, AbortObserver, Adversary, ExceptionHandler;
-system FaultyButton, Light;  </system>
+system MaskROM2Rot, ROMExt, Memory, RSAModule, ReadBootPolicy, VerifyRomExt, ReadPubKey, PmpUnlockRomExt, Environment, Zeno, AbortObserver, Adversary, ExceptionHandler;
+ </system>
 	<queries>
 		<query>
 			<formula>(Environment.Safe2 &amp;&amp; MaskROM2Rot.currentManifest.pub_signature_key.key[0] == 0) --&gt; MaskROM2Rot.StartOfLoop</formula>
