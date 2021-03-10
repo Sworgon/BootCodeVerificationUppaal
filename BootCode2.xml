@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Når man tænder, er hele flash read-only og locked.
+// Når man har verificeret noget, "åbner" man en region gennem PMP, så det kan eksekveres.
+
+const int MemoryMaxIndex = 100;
+
+int GlobalMemory[MemoryMaxIndex];
+
+typedef struct{
+    int identifier;
+    int rom_ext_slot; // Address of Flash Bank
+    
+    //what to do if all ROM Ext are invalid
+    //void (*fail) ();    
+    int fail_function_address;
+
+    //what to do if the ROM Ext unexpectedly returns
+    //void (*fail_rom_ext_terminated) (rom_ext_manifest_t);   
+    int rom_ext_failure_function_address;
+} boot_policy_t;
+
+
+chan PowerOn, StartRomStage;
+
+chan ReadMemory[MemoryMaxIndex][MemoryMaxIndex];
+chan WriteMemory[MemoryMaxIndex][MemoryMaxIndex];
+chan ExecuteMemory[MemoryMaxIndex][MemoryMaxIndex];
+
+void clearGlobalMemory(){
+    int i;
+    for(i = 0; i &lt; MemoryMaxIndex; i++)
+        GlobalMemory[i] = 0;
+}
+</declaration>
+	<template>
+		<name>SystemReset</name>
+		<location id="id0" x="178" y="-51">
+		</location>
+		<location id="id1" x="51" y="-51">
+		</location>
+		<location id="id2" x="-51" y="-51">
+		</location>
+		<init ref="id2"/>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="59" y="-76">StartRomStage!</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-34" y="-76">PowerOn!</label>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">Memory</name>
+		<declaration>int memory[MemoryMaxIndex];
+// 0-20 ROM
+// 21-30 Flash Info
+// 31-65 Flash Bank 0
+// 66-99 Flash Bank 1
+
+typedef struct{
+    int startAddress;
+    int endAddress;
+    bool read;
+    bool write;
+    bool execute;
+    bool locked;
+} PmpRegion_t;
+
+PmpRegion_t PmpRegions[16];
+
+void initializeMemory(){
+    int i;
+    for(i = 0; i &lt; MemoryMaxIndex; i++)
+        memory[i] = i;
+}
+
+void initializePmp(){
+    PmpRegions[15].startAddress = 0;
+    PmpRegions[15].endAddress = MemoryMaxIndex;
+    PmpRegions[15].write = false;
+    PmpRegions[15].read = true;
+    PmpRegions[15].execute = false;
+    PmpRegions[15].locked = true;
+}
+
+bool canRead(int startIndex, int endIndex){
+    return true;
+}
+
+bool canWrite(int startIndex, int endIndex){
+    return true;
+}
+
+bool canExecute(int startIndex, int endIndex){
+    return true;
+}
+
+void readMemory(int startIndex, int endIndex){
+    int i;
+    for(i = 0; i &lt;= endIndex - startIndex; i++){
+        GlobalMemory[i] = memory[i + startIndex];
+    }
+}
+
+
+</declaration>
+		<location id="id3" x="-527" y="-459">
+		</location>
+		<location id="id4" x="-527" y="-603">
+		</location>
+		<init ref="id4"/>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id3"/>
+			<label kind="select" x="-467" y="-484">s : int[0,MemoryMaxIndex - 1],
+e : int[0,MemoryMaxIndex - 1]</label>
+			<label kind="guard" x="-467" y="-450">canExecute(s,e)</label>
+			<label kind="synchronisation" x="-467" y="-433">ExecuteMemory[s][e]?</label>
+			<nail x="-476" y="-442"/>
+			<nail x="-476" y="-476"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id3"/>
+			<label kind="select" x="-612" y="-408">s : int[0,MemoryMaxIndex - 1],
+e : int[0,MemoryMaxIndex - 1]</label>
+			<label kind="guard" x="-612" y="-374">canWrite(s,e)</label>
+			<label kind="synchronisation" x="-612" y="-357">WriteMemory[s][e]?</label>
+			<nail x="-544" y="-408"/>
+			<nail x="-510" y="-408"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id3"/>
+			<label kind="select" x="-756" y="-510">s : int[0,MemoryMaxIndex - 1],
+e : int[0,MemoryMaxIndex - 1]</label>
+			<label kind="guard" x="-756" y="-476">canRead(s, e)</label>
+			<label kind="synchronisation" x="-756" y="-459">ReadMemory[s][e]?</label>
+			<label kind="assignment" x="-756" y="-442">readMemory(s,e)</label>
+			<nail x="-578" y="-476"/>
+			<nail x="-578" y="-442"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-637" y="-586">PowerOn?</label>
+			<label kind="assignment" x="-637" y="-569">initializePmp(),
+initializeMemory()</label>
+		</transition>
+	</template>
+	<template>
+		<name>ROMStage</name>
+		<declaration>boot_policy_t bootPolicy;
+
+void readBootPolicy(){
+    bootPolicy.identifier = GlobalMemory[0];
+    bootPolicy.rom_ext_slot = 31; // Address of flash bank 0.
+    bootPolicy.fail_function_address = GlobalMemory[1];
+    bootPolicy.rom_ext_failure_function_address = GlobalMemory[2];
+}
+
+</declaration>
+		<location id="id5" x="-42" y="-365">
+		</location>
+		<location id="id6" x="-195" y="-365">
+		</location>
+		<location id="id7" x="-365" y="-365">
+		</location>
+		<location id="id8" x="-509" y="-365">
+		</location>
+		<init ref="id8"/>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="assignment" x="-187" y="-408">readBootPolicy(),
+clearGlobalMemory()</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-348" y="-391">ReadMemory[21][30]!</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-493" y="-391">StartRomStage?</label>
+		</transition>
+	</template>
+	<system>system SystemReset, ROMStage, Memory;
+    </system>
+	<queries>
+		<query>
+			<formula></formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>

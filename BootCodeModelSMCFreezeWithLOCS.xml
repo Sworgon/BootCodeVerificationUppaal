@@ -1119,6 +1119,7 @@ MaskRomClock == 1</label>
 			<label kind="synchronisation" x="-102" y="-646">read_boot_policy!</label>
 			<label kind="assignment" x="-102" y="-629">MaskROM2RotLoc = 2,
 MaskRomClock = 0</label>
+			<nail x="136" y="-569"/>
 		</transition>
 	</template>
 	<template>
@@ -1653,6 +1654,10 @@ system MaskROM2Rot, ROMExt, Memory, RSAModule, ReadBootPolicy, VerifyRomExt, Rea
 		</query>
 		<query>
 			<formula>A&lt;&gt; MaskROM2Rot.Success || Environment.Unsafe</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; AbortObserverLoc == 1 &amp;&amp; EnvironmentLoc == 1</formula>
 			<comment></comment>
 		</query>
 		<query>
