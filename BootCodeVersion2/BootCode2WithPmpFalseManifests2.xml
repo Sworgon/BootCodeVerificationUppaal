@@ -298,10 +298,18 @@ void initializeMemory(){
     //loadManifestsIncorrectly();
 }
 
+void readBootPolicy0(){
+    GlobalBootPolicy.identifier = GlobalMemory[0];
+    GlobalBootPolicy.rom_ext_slot[0] = 30; // Address of flash bank 0.
+    GlobalBootPolicy.rom_ext_slot[1] = 65; // Address of flash bank 1.
+    if (NumberOfFlashBanks == 4){
+        GlobalBootPolicy.rom_ext_slot[2] = 100; // Address of flash bank 2.
+        GlobalBootPolicy.rom_ext_slot[3] = 135; // Address of flash bank 3.
+    }
+    GlobalBootPolicy.fail_function_address = GlobalMemory[1];
+    GlobalBootPolicy.rom_ext_failure_function_address = GlobalMemory[2];
 
-
-
-
+}
 
 
 void readMemory(int startIndex, int endIndex){
@@ -311,7 +319,14 @@ void readMemory(int startIndex, int endIndex){
             GlobalPublicKeyArray = trustedPublicKeys;
     }
     if(startIndex &gt;= 20 &amp;&amp; endIndex &lt;= 29){
-        //Something from Flash Info
+        if(startIndex == 20 &amp;&amp; endIndex == 24)
+        {
+         readBootPolicy0();  
+        }
+        else if(startIndex == 25 &amp;&amp; endIndex == 29)
+        {
+            //Something from owner slot 1
+        }
     }
     if(startIndex &gt;= 30 &amp;&amp; endIndex &lt;= 64){
         //Something from Flash Bank 0
@@ -336,7 +351,6 @@ void readMemory(int startIndex, int endIndex){
         //You fucked up
     }
 }
-
 /*
 
 void readMemory(v){
@@ -616,18 +630,17 @@ clearGlobalRomExtsManifests()</label>
 		<transition>
 			<source ref="id22"/>
 			<target ref="id24"/>
-			<label kind="synchronisation" x="-365" y="51">ReadBootPolicyReturn!</label>
-			<label kind="assignment" x="-365" y="34">readBootPolicy()</label>
+			<label kind="synchronisation" x="-357" y="25">ReadBootPolicyReturn!</label>
 		</transition>
 		<transition>
 			<source ref="id23"/>
 			<target ref="id22"/>
-			<label kind="synchronisation" x="-238" y="-76">ReadMemory[21][29]!</label>
+			<label kind="synchronisation" x="-229" y="-68">ReadMemory[20][24]!</label>
 		</transition>
 		<transition>
 			<source ref="id24"/>
 			<target ref="id23"/>
-			<label kind="synchronisation" x="-484" y="-85">ReadBootPolicyCall?</label>
+			<label kind="synchronisation" x="-476" y="-76">ReadBootPolicyCall?</label>
 		</transition>
 	</template>
 	<template>
