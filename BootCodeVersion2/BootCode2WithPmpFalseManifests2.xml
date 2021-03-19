@@ -298,18 +298,10 @@ void initializeMemory(){
     //loadManifestsIncorrectly();
 }
 
-void readBootPolicy0(){
-    GlobalBootPolicy.identifier = GlobalMemory[0];
-    GlobalBootPolicy.rom_ext_slot[0] = 30; // Address of flash bank 0.
-    GlobalBootPolicy.rom_ext_slot[1] = 65; // Address of flash bank 1.
-    if (NumberOfFlashBanks == 4){
-        GlobalBootPolicy.rom_ext_slot[2] = 100; // Address of flash bank 2.
-        GlobalBootPolicy.rom_ext_slot[3] = 135; // Address of flash bank 3.
-    }
-    GlobalBootPolicy.fail_function_address = GlobalMemory[1];
-    GlobalBootPolicy.rom_ext_failure_function_address = GlobalMemory[2];
 
-}
+
+
+
 
 
 void readMemory(int startIndex, int endIndex){
@@ -319,14 +311,7 @@ void readMemory(int startIndex, int endIndex){
             GlobalPublicKeyArray = trustedPublicKeys;
     }
     if(startIndex &gt;= 20 &amp;&amp; endIndex &lt;= 29){
-        if(startIndex == 20 &amp;&amp; endIndex == 24)
-        {
-         readBootPolicy0();  
-        }
-        else if(startIndex == 25 &amp;&amp; endIndex == 29)
-        {
-            //Something from owner slot 1
-        }
+        //Something from Flash Info
     }
     if(startIndex &gt;= 30 &amp;&amp; endIndex &lt;= 64){
         //Something from Flash Bank 0
@@ -351,6 +336,7 @@ void readMemory(int startIndex, int endIndex){
         //You fucked up
     }
 }
+
 /*
 
 void readMemory(v){
@@ -507,7 +493,7 @@ clearGlobalRomExtsManifests()</label>
 		<transition>
 			<source ref="id16"/>
 			<target ref="id17"/>
-			<label kind="synchronisation" x="-544" y="-527">REMTTCall!</label>
+			<label kind="synchronisation" x="-544" y="-510">REMTTCall!</label>
 		</transition>
 		<transition>
 			<source ref="id7"/>
@@ -522,8 +508,8 @@ clearGlobalRomExtsManifests()</label>
 		<transition>
 			<source ref="id8"/>
 			<target ref="id12"/>
-			<label kind="synchronisation" x="93" y="-289">SignatureNotValidBC?</label>
-			<label kind="assignment" x="134" y="-306">loopIndex++</label>
+			<label kind="synchronisation" x="51" y="-255">SignatureNotValidBC?</label>
+			<label kind="assignment" x="110" y="-272">loopIndex++</label>
 			<nail x="221" y="-204"/>
 			<nail x="221" y="-229"/>
 			<nail x="204" y="-238"/>
@@ -548,8 +534,8 @@ clearGlobalRomExtsManifests()</label>
 		<transition>
 			<source ref="id9"/>
 			<target ref="id12"/>
-			<label kind="synchronisation" x="-424" y="-204">PubKeyNotValidBC?</label>
-			<label kind="assignment" x="-424" y="-187">loopIndex++</label>
+			<label kind="synchronisation" x="-459" y="-221">PubKeyNotValidBC?</label>
+			<label kind="assignment" x="-459" y="-204">loopIndex++</label>
 			<nail x="-459" y="-187"/>
 			<nail x="-459" y="-187"/>
 			<nail x="-459" y="-433"/>
@@ -561,8 +547,8 @@ clearGlobalRomExtsManifests()</label>
 		<transition>
 			<source ref="id18"/>
 			<target ref="id9"/>
-			<label kind="synchronisation" x="-263" y="-255">CheckPublicKeyValidCallBC!</label>
-			<label kind="assignment" x="-246" y="-238">GlobalPublicKey = key</label>
+			<label kind="synchronisation" x="-272" y="-255">CheckPublicKeyValidCallBC!</label>
+			<label kind="assignment" x="-272" y="-238">GlobalPublicKey = key</label>
 		</transition>
 		<transition>
 			<source ref="id10"/>
@@ -593,12 +579,12 @@ clearGlobalRomExtsManifests()</label>
 		<transition>
 			<source ref="id14"/>
 			<target ref="id13"/>
-			<label kind="synchronisation" x="-263" y="-654">ReadBootPolicyCall!</label>
+			<label kind="synchronisation" x="-357" y="-654">ReadBootPolicyCall!</label>
 		</transition>
 		<transition>
 			<source ref="id15"/>
 			<target ref="id14"/>
-			<label kind="synchronisation" x="-59" y="-654">StartRomStage?</label>
+			<label kind="synchronisation" x="42" y="-654">StartRomStage?</label>
 		</transition>
 	</template>
 	<template>
@@ -630,17 +616,18 @@ clearGlobalRomExtsManifests()</label>
 		<transition>
 			<source ref="id22"/>
 			<target ref="id24"/>
-			<label kind="synchronisation" x="-357" y="25">ReadBootPolicyReturn!</label>
+			<label kind="synchronisation" x="-365" y="51">ReadBootPolicyReturn!</label>
+			<label kind="assignment" x="-365" y="34">readBootPolicy()</label>
 		</transition>
 		<transition>
 			<source ref="id23"/>
 			<target ref="id22"/>
-			<label kind="synchronisation" x="-229" y="-68">ReadMemory[20][24]!</label>
+			<label kind="synchronisation" x="-238" y="-76">ReadMemory[21][29]!</label>
 		</transition>
 		<transition>
 			<source ref="id24"/>
 			<target ref="id23"/>
-			<label kind="synchronisation" x="-476" y="-76">ReadBootPolicyCall?</label>
+			<label kind="synchronisation" x="-484" y="-85">ReadBootPolicyCall?</label>
 		</transition>
 	</template>
 	<template>
@@ -1076,11 +1063,11 @@ end = e</label>
 	<queries>
 		<query>
 			<formula>A[] ROMStage.ReadyToRunROMExt imply (PmpRegions[0].execute &amp;&amp; PmpRegions[0].startAddress &lt;= ROMStage.currentManifest.entryPoint &amp;&amp; PmpRegions[0].endAddress &gt;= ROMStage.currentManifest.entryPoint)</formula>
-			<comment></comment>
+			<comment>Whenever the rom ext is running, it must be true, that the PMP regions allow for executing that entrypoint.</comment>
 		</query>
 		<query>
 			<formula>A[] not( ROMStage.Boot_Failed || ROMStage.Rom_Ext_terminated)</formula>
-			<comment></comment>
+			<comment>The ROM Stage will never fail. This is due to the hardcoded values in the manifest / memory. If we eventaully implement non-determinism, we expect that this property might not hold.</comment>
 		</query>
 		<query>
 			<formula>exists (i : int[0,9]) PowerMod(ROMStage.currentManifest.signature[i], ROMStage.currentManifest.pub_signature_key.exponent,ROMStage.currentManifest.pub_signature_key.modulus) != ROMStage.currentManifest.image_code[i] --&gt; ROMStage.StartOfLoop</formula>
@@ -1088,15 +1075,15 @@ end = e</label>
 		</query>
 		<query>
 			<formula>forall (i : int[0, NumberOfTrustedKeys - 1]) Memory.trustedPublicKeys[i] != ROMStage.currentManifest.pub_signature_key  --&gt; ROMStage.StartOfLoop</formula>
-			<comment>If the exponent is not prime, we will eventually go back to the start of loop.</comment>
+			<comment>If the key is not a trusted public key, we will eventually go back to the start of loop.</comment>
 		</query>
 		<query>
 			<formula>ROMStage.currentManifest.identifier == 0 --&gt; ROMStage.StartOfLoop</formula>
-			<comment></comment>
+			<comment>If the manifest has an identifier of 0 (meaning that the identifier is "empty"), then the ROMStage template will go back to StartOfLoop indicating failure to verify that ROM ext manifest.</comment>
 		</query>
 		<query>
 			<formula>A&lt;&gt; final_jump_to_rom_ext.ROM_ext_running</formula>
-			<comment>ROM Ext is running, which is success</comment>
+			<comment>We will always reach a state where the rom ext is running.</comment>
 		</query>
 	</queries>
 </nta>
