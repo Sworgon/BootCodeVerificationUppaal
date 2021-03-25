@@ -11,9 +11,10 @@ Primes: p = 11, q = 13
 Totient = 120
 */
 const int MemoryMaxIndex = 150;
-const int NumberOfFlashBanks = 2; // Should be 2 when loading correctly.
+const int NumberOfFlashBanks = 1; // Should be 2 when loading correctly.
 const int NumberOfTrustedKeys = 2;
 const int exponent = 7;
+const int imageCodeSize = 3;
 
 typedef struct{
     int identifier;
@@ -41,9 +42,9 @@ typedef struct {
 typedef struct {
     int identifier;
     int entryPoint; //address in memory
-    int signature[10];
+    int signature[imageCodeSize];
     pub_key_t pub_signature_key;
-    int image_code[10];
+    int image_code[imageCodeSize];
 } rom_ext_manifest_t;
 
 typedef struct {
@@ -68,8 +69,8 @@ rom_exts_manifests_t GlobalRomExtsManifests;
 pub_key_t GlobalPublicKey;
 pub_key_t GlobalPublicKeyArray[NumberOfTrustedKeys];
 //bool GlobalBool;
-int GlobalSignature[10];
-int GlobalImageCode[10];
+int GlobalSignature[imageCodeSize];
+int GlobalImageCode[imageCodeSize];
 rom_ext_manifest_t GlobalManifest;
 
 broadcast chan PowerOnBC;
@@ -79,9 +80,9 @@ chan CheckRomExtManifestCall,
      CheckRomExtManifestValid,
      CheckRomExtManifestNotValid;
 
-chan ReadMemory[MemoryMaxIndex][MemoryMaxIndex];
-chan WriteMemory[MemoryMaxIndex][MemoryMaxIndex];
-chan ExecuteMemory[MemoryMaxIndex][MemoryMaxIndex];
+chan TryReadMemory[MemoryMaxIndex][MemoryMaxIndex];
+chan TryWriteMemory[MemoryMaxIndex][MemoryMaxIndex];
+chan TryExecuteMemory[MemoryMaxIndex][MemoryMaxIndex];
 
 chan ReadBootPolicyCall,
      ReadBootPolicyReturn;
@@ -96,6 +97,7 @@ chan FinalJumpCall,
      FinalJumpReturn;
 
 chan Rom_Ext_Fail;
+chan RaiseException;
 
 broadcast chan CheckPublicKeyValidCallBC,
                PubKeyNotValidBC,
@@ -131,7 +133,7 @@ void clearGlobalRomExtsManifests(){
     for(i = 0; i &lt; NumberOfFlashBanks; i++){
         GlobalRomExtsManifests.rom_exts_mfs[i].identifier = 0;
         GlobalRomExtsManifests.rom_exts_mfs[i].entryPoint = 0;
-        for(j = 0; j &lt; 10; j++){
+        for(j = 0; j &lt; imageCodeSize; j++){
             GlobalRomExtsManifests.rom_exts_mfs[i].signature[j] = 0;
             GlobalRomExtsManifests.rom_exts_mfs[i].pub_signature_key.modulus = 0;
             GlobalRomExtsManifests.rom_exts_mfs[i].pub_signature_key.exponent = 0;
@@ -148,7 +150,7 @@ void clearGlobalManifest(){
     GlobalManifest.pub_signature_key.modulus = 0;
     GlobalManifest.pub_signature_key.modulus = 0;
 
-    for(i = 0; i &lt; 10; i++){    
+    for(i = 0; i &lt; imageCodeSize; i++){    
             GlobalManifest.signature[i] = 0;      
             GlobalManifest.image_code[i] = 0;
         }
@@ -181,7 +183,7 @@ void ClearGlobalManifest(){
     GlobalManifest.identifier = 0;
     GlobalManifest.entryPoint = 0; 
     
-    for(i = 0; i &lt; 10; i++){
+    for(i = 0; i &lt; imageCodeSize; i++){
         GlobalManifest.image_code[i] = 0;
         GlobalManifest.signature[i] = 0;
     }
@@ -239,7 +241,27 @@ void loadManifestsCorrectly(){
         //modulus and exponent taken from example. i is added to subsequent manifests' keys to make keys invalid. This tests that keys are checked correctly.
         tempManifest.pub_signature_key.modulus = 143 + i;
         tempManifest.pub_signature_key.exponent = 7 + i;
-        for(j = 0; j &lt; 10; j++){
+        for(j = 0; j &lt; imageCodeSize; j++){
+            tempManifest.image_code[j] = (38 + (35 * i) + j % 4);         
+            tempManifest.signature[j] = PowerMod(tempManifest.image_code[j],103,tempManifest.pub_signature_key.modulus);
+        }
+        
+        manifests.rom_exts_mfs[i] = tempManifest;
+    }
+}
+
+void loadExperimentalManifest(){
+    int i, j;
+    rom_ext_manifest_t tempManifest;
+    //Create manifest for Flash Banks
+    for(i = 0; i &lt; NumberOfFlashBanks; i++){
+        tempManifest.identifier = 30 + (35 * i);
+        tempManifest.entryPoint = 38 + (35 * i);
+        
+        //modulus and exponent taken from example. i is added to subsequent manifests' keys to make keys invalid. This tests that keys are checked correctly.
+        tempManifest.pub_signature_key.modulus = 143 + i;
+        tempManifest.pub_signature_key.exponent = 7 + i;
+        for(j = 0; j &lt; imageCodeSize; j++){
             tempManifest.image_code[j] = (38 + (35 * i) + j % 4);         
             tempManifest.signature[j] = PowerMod(tempManifest.image_code[j],103,tempManifest.pub_signature_key.modulus);
         }
@@ -262,7 +284,7 @@ void loadManifestsIncorrectly(){
     //modulus and exponent taken from example. i is added to subsequent manifests' keys to make keys invalid. This tests that keys are checked correctly.
     manifest1.pub_signature_key.modulus = 143;
     manifest1.pub_signature_key.exponent = 7;
-    for(j = 0; j &lt; 10; j++){
+    for(j = 0; j &lt; imageCodeSize; j++){
         manifest1.image_code[j] = (38 + j % 4);         
         manifest1.signature[j] = PowerMod(manifest1.image_code[j],103,manifest1.pub_signature_key.modulus);
     }        
@@ -273,7 +295,7 @@ void loadManifestsIncorrectly(){
         //modulus and exponent taken from example. i is added to subsequent manifests' keys to make keys invalid. This tests that keys are checked correctly.
     manifest2.pub_signature_key.modulus = 143;
     manifest2.pub_signature_key.exponent = 8; // 8 should be 7
-    for(j = 0; j &lt; 10; j++){
+    for(j = 0; j &lt; imageCodeSize; j++){
         manifest2.image_code[j] = (38 + j % 4);         
         manifest2.signature[j] = PowerMod(manifest2.image_code[j], 103, manifest2.pub_signature_key.modulus);
     }
@@ -284,7 +306,7 @@ void loadManifestsIncorrectly(){
    
     manifest3.pub_signature_key.modulus = 143;
     manifest3.pub_signature_key.exponent = 7;
-    for(j = 0; j &lt; 10; j++){
+    for(j = 0; j &lt; imageCodeSize; j++){
         manifest3.image_code[j] = (38 + j % 4);         
         manifest3.signature[j] = PowerMod(manifest3.image_code[j],104,manifest3.pub_signature_key.modulus); // 104 should be 103
     }
@@ -295,7 +317,7 @@ void loadManifestsIncorrectly(){
     //modulus and exponent taken from example. i is added to subsequent manifests' keys to make keys invalid. This tests that keys are checked correctly.
     manifest4.pub_signature_key.modulus = 143;
     manifest4.pub_signature_key.exponent = 7;
-    for(j = 0; j &lt; 10; j++){
+    for(j = 0; j &lt; imageCodeSize; j++){
         manifest4.image_code[j] = (38 + j % 4);         
         manifest4.signature[j] = PowerMod(manifest4.image_code[j],103,manifest4.pub_signature_key.modulus);
     }
@@ -316,6 +338,8 @@ void initializeMemory(){
         loadManifestsCorrectly();
     else if (NumberOfFlashBanks == 4)
         loadManifestsIncorrectly();
+    else if (NumberOfFlashBanks == 1)
+        loadExperimentalManifest();
 }
 
 
@@ -383,31 +407,29 @@ void writeMemory(int startIndex, int endIndex){
 
 </declaration>
 		<location id="id3" x="-527" y="-459">
-			<name x="-578" y="-442">Memory_Running</name>
 		</location>
 		<location id="id4" x="-527" y="-629">
-			<name x="-537" y="-663">Initial</name>
 		</location>
 		<init ref="id4"/>
 		<transition>
 			<source ref="id3"/>
 			<target ref="id3"/>
-			<label kind="select" x="-433" y="-501">s : int[0,MemoryMaxIndex - 1],
+			<label kind="select" x="-467" y="-501">s : int[0,MemoryMaxIndex - 1],
 e : int[0,MemoryMaxIndex - 1]</label>
-			<label kind="synchronisation" x="-433" y="-467">PmpWriteMemory[s][e]?</label>
-			<label kind="assignment" x="-433" y="-450">writeMemory(s,e)</label>
-			<nail x="-442" y="-476"/>
-			<nail x="-442" y="-442"/>
+			<label kind="synchronisation" x="-467" y="-467">PmpWriteMemory[s][e]?</label>
+			<label kind="assignment" x="-467" y="-450">writeMemory(s,e)</label>
+			<nail x="-476" y="-476"/>
+			<nail x="-476" y="-442"/>
 		</transition>
 		<transition>
 			<source ref="id3"/>
 			<target ref="id3"/>
-			<label kind="select" x="-816" y="-501">s : int[0,MemoryMaxIndex - 1],
+			<label kind="select" x="-782" y="-501">s : int[0,MemoryMaxIndex - 1],
 e : int[0,MemoryMaxIndex - 1]</label>
-			<label kind="synchronisation" x="-816" y="-467">PmpReadMemory[s][e]?</label>
-			<label kind="assignment" x="-816" y="-450">readMemory(s,e)</label>
-			<nail x="-612" y="-476"/>
-			<nail x="-612" y="-442"/>
+			<label kind="synchronisation" x="-782" y="-467">PmpReadMemory[s][e]?</label>
+			<label kind="assignment" x="-782" y="-450">readMemory(s,e)</label>
+			<nail x="-578" y="-476"/>
+			<nail x="-578" y="-442"/>
 		</transition>
 		<transition>
 			<source ref="id4"/>
@@ -425,6 +447,10 @@ int loopIndex = 0;
 pub_key_t key;
 //int entryPoint;
 
+
+
+
+
 void readPublicKey(){
     key = currentManifest.pub_signature_key;
 }
@@ -438,54 +464,55 @@ void pmpUnlockRomExt(){
     PmpRegions[0].write = false;    
 }
 
+void clearManifest(){
+    int i;
+    currentManifest.identifier = 0;
+    currentManifest.entryPoint = 0; 
+    
+    for(i = 0; i &lt; imageCodeSize; i++){
+        currentManifest.image_code[i] = 0;
+        currentManifest.signature[i] = 0;
+    }
+    
+    currentManifest.pub_signature_key.exponent = 0;
+    currentManifest.pub_signature_key.modulus = 0;
+}
 </declaration>
 		<location id="id5" x="238" y="-561">
 			<name x="255" y="-578">Rom_Ext_terminated</name>
 		</location>
 		<location id="id6" x="238" y="-476">
-			<name x="255" y="-484">ROM_Ext_Running</name>
 		</location>
-		<location id="id7" x="238" y="-263">
-			<name x="255" y="-272">Unlock_ROM_Ext</name>
+		<location id="id7" x="238" y="-255">
 		</location>
 		<location id="id8" x="238" y="-187">
-			<name x="255" y="-187">Checking_Signature</name>
 		</location>
 		<location id="id9" x="-85" y="-187">
-			<name x="-246" y="-170">Checking_Pub_key_Valid</name>
 		</location>
 		<location id="id10" x="-85" y="-357">
-			<name x="-68" y="-374">Checking_ROM_ext_Manifest</name>
 		</location>
 		<location id="id11" x="-85" y="-561">
 			<name x="-68" y="-578">Boot_Failed</name>
 		</location>
 		<location id="id12" x="-85" y="-459">
-			<name x="-68" y="-484">Start_Of_Loop</name>
+			<name x="-68" y="-484">StartOfLoop</name>
 		</location>
 		<location id="id13" x="-459" y="-629">
-			<name x="-612" y="-646">Reading_Boot_Policy</name>
 		</location>
 		<location id="id14" x="-85" y="-629">
-			<name x="-76" y="-654">Started</name>
 		</location>
 		<location id="id15" x="238" y="-629">
-			<name x="255" y="-646">Initial</name>
 		</location>
-		<location id="id16" x="-459" y="-544">
-			<name x="-561" y="-561">Call_REMTT</name>
+		<location id="id16" x="-459" y="-552">
 		</location>
 		<location id="id17" x="-459" y="-459">
-			<name x="-663" y="-484">Reading_ROM_Ext_Manifests</name>
 		</location>
 		<location id="id18" x="-85" y="-272">
-			<name x="-68" y="-280">Call_Pub_Key_Valid</name>
 		</location>
-		<location id="id19" x="85" y="-187">
-			<name x="25" y="-178">Call_Check_Signature</name>
+		<location id="id19" x="59" y="-187">
 		</location>
 		<location id="id20" x="238" y="-357">
-			<name x="255" y="-365">Ready_To_Run_ROM_Ext</name>
+			<name x="255" y="-374">ReadyToRunROMExt</name>
 		</location>
 		<init ref="id15"/>
 		<transition>
@@ -498,8 +525,8 @@ void pmpUnlockRomExt(){
 		<transition>
 			<source ref="id10"/>
 			<target ref="id18"/>
-			<label kind="synchronisation" x="-76" y="-340">CheckRomExtManifestValid?</label>
-			<label kind="assignment" x="-76" y="-323">readPublicKey()</label>
+			<label kind="synchronisation" x="-76" y="-323">CheckRomExtManifestValid?</label>
+			<label kind="assignment" x="-76" y="-306">readPublicKey()</label>
 		</transition>
 		<transition>
 			<source ref="id6"/>
@@ -530,7 +557,7 @@ clearGlobalRomExtsManifests()</label>
 		<transition>
 			<source ref="id16"/>
 			<target ref="id17"/>
-			<label kind="synchronisation" x="-535" y="-518">REMTTCall!</label>
+			<label kind="synchronisation" x="-544" y="-510">REMTTCall!</label>
 		</transition>
 		<transition>
 			<source ref="id7"/>
@@ -566,7 +593,7 @@ clearGlobalRomExtsManifests()</label>
 		<transition>
 			<source ref="id9"/>
 			<target ref="id19"/>
-			<label kind="synchronisation" x="-68" y="-212">PubKeyValidBC?</label>
+			<label kind="synchronisation" x="-67" y="-204">PubKeyValidBC?</label>
 		</transition>
 		<transition>
 			<source ref="id9"/>
@@ -610,7 +637,7 @@ GlobalManifest = currentManifest</label>
 		<transition>
 			<source ref="id14"/>
 			<target ref="id13"/>
-			<label kind="synchronisation" x="-263" y="-654">ReadBootPolicyCall!</label>
+			<label kind="synchronisation" x="-357" y="-654">ReadBootPolicyCall!</label>
 		</transition>
 		<transition>
 			<source ref="id15"/>
@@ -658,8 +685,11 @@ ClearGlobalManifest()</label>
 		<name>ReadBootPolicy</name>
 		<declaration>void readBootPolicy(){
     GlobalBootPolicy.identifier = GlobalMemory[0];
+    
     GlobalBootPolicy.rom_ext_slot[0] = 30; // Address of flash bank 0.
-    GlobalBootPolicy.rom_ext_slot[1] = 65; // Address of flash bank 1.
+    if (NumberOfFlashBanks == 2){
+        GlobalBootPolicy.rom_ext_slot[1] = 65; // Address of flash bank 1.
+    }
     if (NumberOfFlashBanks == 4){
         GlobalBootPolicy.rom_ext_slot[2] = 100; // Address of flash bank 2.
         GlobalBootPolicy.rom_ext_slot[3] = 135; // Address of flash bank 3.
@@ -715,6 +745,112 @@ ClearGlobalManifest()</label>
 	<template>
 		<name>rom_ext_manifests_to_try</name>
 		<declaration>boot_policy_t bootPolicy;
+rom_ext_manifest_t manifest;
+int loopIndex = 0;
+int startReadIndex, endReadIndex;
+
+/*
+void makeManifest(){
+    rom_ext_manifest_t manifest;
+    // The fields are filled out pretty randomly -.-
+    int i;
+    manifest.identifier = GlobalMemory[0];
+    manifest.entryPoint = GlobalMemory[3]; //34, 69
+    manifest.signature = GlobalMemory[2];
+    for(i = 0; i &lt; 10; i++){
+        manifest.pub_signature_key.key[i] = GlobalMemory[3];
+        manifest.image_code[i] = GlobalMemory[4];
+    }
+    manifests[loopIndex] = manifest;
+}
+*/
+
+//ReadMemory[bootPolicy.rom_ext_slot[loopIndex] + (35 * loopIndex)][bootPolicy.rom_ext_slot[loopIndex] + 11 + (35 * loopIndex)]!
+void setReadIndices(){
+    if(loopIndex &lt; NumberOfFlashBanks){
+        startReadIndex = bootPolicy.rom_ext_slot[loopIndex];
+        endReadIndex = bootPolicy.rom_ext_slot[loopIndex] + 11;
+    }
+}
+
+void makeManifest(){
+    GlobalManifest = manifest;
+}
+
+
+void returnManifests(){
+    int i;
+    GlobalRomExtsManifests.size = NumberOfFlashBanks;
+    GlobalRomExtsManifests.rom_exts_mfs[0] = manifest;
+}
+
+
+/*
+    int identifier;
+    int entryPoint; //address in memory
+    int signature;
+    pub_key_t pub_signature_key;
+    int image_code[10];
+*/
+</declaration>
+		<location id="id29" x="850" y="-170">
+		</location>
+		<location id="id30" x="850" y="-340">
+		</location>
+		<location id="id31" x="578" y="-340">
+		</location>
+		<location id="id32" x="578" y="-170">
+		</location>
+		<location id="id33" x="850" y="-263">
+		</location>
+		<init ref="id32"/>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id29"/>
+			<label kind="select" x="935" y="-204">i : int[1,2]</label>
+			<label kind="guard" x="935" y="-187">loopIndex &lt; imageCodeSize</label>
+			<label kind="assignment" x="935" y="-170">manifest.image_code[loopIndex] = i,
+manifest.signature[loopIndex] = PowerMod(i,103,143 + manifest.identifier),
+loopIndex++</label>
+			<nail x="918" y="-204"/>
+			<nail x="918" y="-136"/>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id29"/>
+			<label kind="assignment" x="858" y="-238">manifest.entryPoint = 38</label>
+		</transition>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id32"/>
+			<label kind="guard" x="603" y="-161">loopIndex &gt;= imageCodeSize</label>
+			<label kind="synchronisation" x="603" y="-144">REMTTReturn!</label>
+			<label kind="assignment" x="603" y="-127">manifest.pub_signature_key.exponent = 7,
+manifest.pub_signature_key.modulus = 143,
+returnManifests()</label>
+		</transition>
+		<transition>
+			<source ref="id30"/>
+			<target ref="id33"/>
+			<label kind="select" x="857" y="-323">i : int[0,1]</label>
+			<label kind="assignment" x="858" y="-306">manifest.identifier = i</label>
+		</transition>
+		<transition>
+			<source ref="id31"/>
+			<target ref="id30"/>
+			<label kind="guard" x="620" y="-365">loopIndex &lt; NumberOfFlashBanks</label>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id31"/>
+			<label kind="synchronisation" x="391" y="-297">REMTTCall?</label>
+			<label kind="assignment" x="391" y="-280">bootPolicy = GlobalBootPolicy,
+clearGlobalBootPolicy()</label>
+		</transition>
+	</template>
+	<template>
+		<name>rom_ext_manifests_to_try_standard</name>
+		<declaration>boot_policy_t bootPolicy;
 rom_ext_manifest_t manifests[NumberOfFlashBanks];
 int loopIndex = 0;
 int startReadIndex, endReadIndex;
@@ -763,24 +899,24 @@ void returnManifests(){
     int image_code[10];
 */
 </declaration>
-		<location id="id29" x="714" y="-289">
+		<location id="id34" x="714" y="-289">
 		</location>
-		<location id="id30" x="612" y="-289">
+		<location id="id35" x="612" y="-289">
 		</location>
-		<location id="id31" x="510" y="-289">
+		<location id="id36" x="510" y="-289">
 		</location>
-		<init ref="id31"/>
+		<init ref="id36"/>
 		<transition>
-			<source ref="id30"/>
-			<target ref="id31"/>
+			<source ref="id35"/>
+			<target ref="id36"/>
 			<label kind="guard" x="365" y="-238">loopIndex &gt;= NumberOfFlashBanks</label>
 			<label kind="synchronisation" x="365" y="-221">REMTTReturn!</label>
 			<label kind="assignment" x="365" y="-204">returnManifests()</label>
 			<nail x="561" y="-238"/>
 		</transition>
 		<transition>
-			<source ref="id29"/>
-			<target ref="id30"/>
+			<source ref="id34"/>
+			<target ref="id35"/>
 			<label kind="assignment" x="637" y="-238">makeManifest(),
 clearGlobalManifest(),
 loopIndex++,
@@ -788,15 +924,15 @@ setReadIndices()</label>
 			<nail x="663" y="-238"/>
 		</transition>
 		<transition>
-			<source ref="id30"/>
-			<target ref="id29"/>
+			<source ref="id35"/>
+			<target ref="id34"/>
 			<label kind="guard" x="620" y="-365">loopIndex &lt; NumberOfFlashBanks</label>
-			<label kind="synchronisation" x="620" y="-382">ReadMemory[startReadIndex][endReadIndex]!</label>
+			<label kind="synchronisation" x="620" y="-382">TryReadMemory[startReadIndex][endReadIndex]!</label>
 			<nail x="663" y="-340"/>
 		</transition>
 		<transition>
-			<source ref="id31"/>
-			<target ref="id30"/>
+			<source ref="id36"/>
+			<target ref="id35"/>
 			<label kind="synchronisation" x="399" y="-399">REMTTCall?</label>
 			<label kind="assignment" x="399" y="-382">bootPolicy = GlobalBootPolicy,
 clearGlobalBootPolicy(),
@@ -807,43 +943,43 @@ setReadIndices()</label>
 	<template>
 		<name>final_jump_to_rom_ext</name>
 		<declaration>rom_ext_manifest_t currentManifest;</declaration>
-		<location id="id32" x="-408" y="-391">
+		<location id="id37" x="-408" y="-391">
 		</location>
-		<location id="id33" x="-255" y="-391">
+		<location id="id38" x="-255" y="-391">
 		</location>
-		<location id="id34" x="-102" y="-391">
+		<location id="id39" x="-102" y="-391">
 			<name x="-85" y="-391">ROM_ext_running</name>
 		</location>
-		<location id="id35" x="-102" y="-289">
+		<location id="id40" x="-102" y="-289">
 		</location>
-		<location id="id36" x="-595" y="-289">
+		<location id="id41" x="-595" y="-289">
 		</location>
-		<location id="id37" x="-850" y="-289">
+		<location id="id42" x="-850" y="-289">
 		</location>
-		<init ref="id37"/>
+		<init ref="id42"/>
 		<transition>
-			<source ref="id33"/>
-			<target ref="id32"/>
+			<source ref="id38"/>
+			<target ref="id37"/>
 			<label kind="synchronisation" x="-382" y="-416">FinalJumpReturn!</label>
 		</transition>
 		<transition>
-			<source ref="id34"/>
-			<target ref="id33"/>
+			<source ref="id39"/>
+			<target ref="id38"/>
 			<label kind="synchronisation" x="-221" y="-416">Rom_Ext_Fail?</label>
 		</transition>
 		<transition>
-			<source ref="id35"/>
-			<target ref="id34"/>
+			<source ref="id40"/>
+			<target ref="id39"/>
 			<label kind="synchronisation" x="-93" y="-348">RomExtStart[currentManifest.entryPoint]!</label>
 		</transition>
 		<transition>
-			<source ref="id36"/>
-			<target ref="id35"/>
+			<source ref="id41"/>
+			<target ref="id40"/>
 			<label kind="synchronisation" x="-578" y="-314">ExecuteMemory[currentManifest.entryPoint][currentManifest.entryPoint]!</label>
 		</transition>
 		<transition>
-			<source ref="id37"/>
-			<target ref="id36"/>
+			<source ref="id42"/>
+			<target ref="id41"/>
 			<label kind="synchronisation" x="-833" y="-348">FinalJumpCall?</label>
 			<label kind="assignment" x="-833" y="-331">currentManifest = GlobalManifest,
 clearGlobalManifest()</label>
@@ -860,37 +996,37 @@ bool checkPublicKey(){
                 return true;
     return false;
 }</declaration>
-		<location id="id38" x="-68" y="-289">
+		<location id="id43" x="-68" y="-289">
 		</location>
-		<location id="id39" x="-272" y="-289">
+		<location id="id44" x="-272" y="-289">
 		</location>
-		<location id="id40" x="-527" y="-289">
+		<location id="id45" x="-527" y="-289">
 		</location>
-		<init ref="id40"/>
+		<init ref="id45"/>
 		<transition>
-			<source ref="id39"/>
-			<target ref="id38"/>
+			<source ref="id44"/>
+			<target ref="id43"/>
 			<label kind="synchronisation" x="-246" y="-314">ReadMemory[18][19]!</label>
 		</transition>
 		<transition>
-			<source ref="id38"/>
-			<target ref="id40"/>
+			<source ref="id43"/>
+			<target ref="id45"/>
 			<label kind="guard" x="-476" y="-382">!checkPublicKey()</label>
 			<label kind="synchronisation" x="-476" y="-365">PubKeyNotValidBC!</label>
 			<nail x="-68" y="-340"/>
 			<nail x="-527" y="-340"/>
 		</transition>
 		<transition>
-			<source ref="id38"/>
-			<target ref="id40"/>
+			<source ref="id43"/>
+			<target ref="id45"/>
 			<label kind="guard" x="-510" y="-195">checkPublicKey()</label>
 			<label kind="synchronisation" x="-510" y="-178">PubKeyValidBC!</label>
 			<nail x="-68" y="-204"/>
 			<nail x="-527" y="-204"/>
 		</transition>
 		<transition>
-			<source ref="id40"/>
-			<target ref="id39"/>
+			<source ref="id45"/>
+			<target ref="id44"/>
 			<label kind="synchronisation" x="-493" y="-314">CheckPublicKeyValidCallBC?</label>
 			<label kind="assignment" x="-493" y="-289">publicKey = GlobalPublicKey,
 ClearGlobalPublicKey()</label>
@@ -898,14 +1034,14 @@ ClearGlobalPublicKey()</label>
 	</template>
 	<template>
 		<name>RSAModule</name>
-		<declaration>int signature[10];
-int image_code[10];
+		<declaration>int signature[imageCodeSize];
+int image_code[imageCodeSize];
 pub_key_t key;
 
 bool checkSignature(){
     int i;
 
-    for(i = 0; i &lt; 10; i++)
+    for(i = 0; i &lt; imageCodeSize; i++)
         if (PowerMod(signature[i],key.exponent,key.modulus) != image_code[i])
             return false;
 
@@ -916,27 +1052,27 @@ void clear(){
     int i;
     key.exponent = 0;
     key.modulus = 0;
-    for(i = 0; i &lt; 10; i++){
+    for(i = 0; i &lt; imageCodeSize; i++){
         signature[i] = 0;
         image_code[i] = 0;   
     }
 }</declaration>
-		<location id="id41" x="-799" y="-221">
+		<location id="id46" x="-799" y="-221">
 		</location>
-		<location id="id42" x="-527" y="-221">
+		<location id="id47" x="-527" y="-221">
 		</location>
-		<init ref="id41"/>
+		<init ref="id46"/>
 		<transition>
-			<source ref="id41"/>
-			<target ref="id42"/>
+			<source ref="id46"/>
+			<target ref="id47"/>
 			<label kind="synchronisation" x="-748" y="-204">CheckSignatureBC?</label>
 			<label kind="assignment" x="-748" y="-255">signature = GlobalSignature,
 image_code = GlobalImageCode,
 key = GlobalPublicKey</label>
 		</transition>
 		<transition>
-			<source ref="id42"/>
-			<target ref="id41"/>
+			<source ref="id47"/>
+			<target ref="id46"/>
 			<label kind="guard" x="-714" y="-331">!checkSignature()</label>
 			<label kind="synchronisation" x="-714" y="-314">SignatureNotValidBC!</label>
 			<label kind="assignment" x="-714" y="-297">clear()</label>
@@ -944,8 +1080,8 @@ key = GlobalPublicKey</label>
 			<nail x="-799" y="-272"/>
 		</transition>
 		<transition>
-			<source ref="id42"/>
-			<target ref="id41"/>
+			<source ref="id47"/>
+			<target ref="id46"/>
 			<label kind="guard" x="-731" y="-170">checkSignature()</label>
 			<label kind="synchronisation" x="-731" y="-153">SignatureValidBC!</label>
 			<label kind="assignment" x="-731" y="-136">clear()</label>
@@ -956,53 +1092,166 @@ key = GlobalPublicKey</label>
 	<template>
 		<name>ValidityCheckObserver</name>
 		<declaration>//Fix guards in accordance to new key make up</declaration>
-		<location id="id43" x="391" y="-51">
+		<location id="id48" x="391" y="-51">
 			<name x="381" y="-85">Success</name>
 		</location>
-		<location id="id44" x="187" y="-51">
+		<location id="id49" x="187" y="-51">
 		</location>
-		<location id="id45" x="-51" y="-51">
+		<location id="id50" x="-51" y="-51">
 		</location>
-		<location id="id46" x="-289" y="-51">
+		<location id="id51" x="-289" y="-51">
 		</location>
-		<location id="id47" x="-51" y="51">
+		<location id="id52" x="-51" y="51">
 			<committed/>
 		</location>
-		<init ref="id46"/>
+		<init ref="id51"/>
 		<transition>
-			<source ref="id47"/>
-			<target ref="id46"/>
+			<source ref="id52"/>
+			<target ref="id51"/>
 			<nail x="-289" y="51"/>
 		</transition>
 		<transition>
-			<source ref="id44"/>
-			<target ref="id47"/>
+			<source ref="id49"/>
+			<target ref="id52"/>
 			<label kind="guard" x="-25" y="8">GlobalSignature[0] != 33</label>
 			<label kind="synchronisation" x="-25" y="25">SignatureNotValidBC?</label>
 			<nail x="187" y="51"/>
 		</transition>
 		<transition>
-			<source ref="id45"/>
-			<target ref="id47"/>
+			<source ref="id50"/>
+			<target ref="id52"/>
 			<label kind="synchronisation" x="-229" y="0">PubKeyNotValidBC?</label>
 		</transition>
 		<transition>
-			<source ref="id44"/>
-			<target ref="id43"/>
+			<source ref="id49"/>
+			<target ref="id48"/>
 			<label kind="guard" x="205" y="-85">GlobalSignature[0] == 33</label>
 			<label kind="synchronisation" x="204" y="-102">SignatureValidBC?</label>
 		</transition>
 		<transition>
-			<source ref="id45"/>
-			<target ref="id44"/>
+			<source ref="id50"/>
+			<target ref="id49"/>
 			<label kind="synchronisation" x="-25" y="-76">PubKeyValidBC?</label>
 		</transition>
 		<transition>
-			<source ref="id46"/>
-			<target ref="id45"/>
+			<source ref="id51"/>
+			<target ref="id50"/>
 			<label kind="select" x="-263" y="-127">e : int[0,MemoryMaxIndex - 1]</label>
 			<label kind="guard" x="-263" y="-110">e != 0</label>
 			<label kind="synchronisation" x="-263" y="-93">RomExtValidBC[e]?</label>
+		</transition>
+	</template>
+	<template>
+		<name>PmpModuleOld</name>
+		<declaration>int start, end;
+
+void initializePmp(){
+    PmpRegions[15].startAddress = 0;
+    PmpRegions[15].endAddress = MemoryMaxIndex;
+    PmpRegions[15].write = false;
+    PmpRegions[15].read = true;
+    PmpRegions[15].execute = false;
+    PmpRegions[15].locked = true;
+}
+bool canRead(int startIndex, int endIndex){
+    int i;
+    for(i = 0; i &lt; 16;i++)
+        if (PmpRegions[i].startAddress &lt;= startIndex &amp;&amp; PmpRegions[i].endAddress &gt;= endIndex)
+            if (PmpRegions[i].read)
+                return true;
+    return false;
+}
+
+bool canWrite(int startIndex, int endIndex){
+    int i;
+    for(i = 0; i &lt; 16;i++)
+        if (PmpRegions[i].startAddress &lt;= startIndex &amp;&amp; PmpRegions[i].endAddress &gt;= endIndex)
+            if (PmpRegions[i].write)
+                return true;
+    return false;
+}
+
+bool canExecute(int startIndex, int endIndex){
+    int i;
+    for(i = 0; i &lt; 16;i++)
+        if (PmpRegions[i].startAddress &lt;= startIndex &amp;&amp; PmpRegions[i].endAddress &gt;= endIndex)
+            if (PmpRegions[i].execute)
+                return true;
+    return false;
+}</declaration>
+		<location id="id53" x="-204" y="-340">
+		</location>
+		<location id="id54" x="-136" y="-510">
+		</location>
+		<location id="id55" x="-34" y="-340">
+			<committed/>
+		</location>
+		<location id="id56" x="-382" y="-340">
+			<committed/>
+		</location>
+		<init ref="id54"/>
+		<transition>
+			<source ref="id56"/>
+			<target ref="id53"/>
+			<label kind="synchronisation" x="-493" y="-297">PmpReadMemory[start][end]!</label>
+			<label kind="assignment" x="-493" y="-280">start = 0,
+end = 0</label>
+			<nail x="-382" y="-306"/>
+			<nail x="-238" y="-306"/>
+		</transition>
+		<transition>
+			<source ref="id55"/>
+			<target ref="id53"/>
+			<label kind="synchronisation" x="-51" y="-297">PmpWriteMemory[start][end]!</label>
+			<label kind="assignment" x="-51" y="-280">start = 0,
+end = 0</label>
+			<nail x="-34" y="-306"/>
+			<nail x="-170" y="-306"/>
+		</transition>
+		<transition>
+			<source ref="id53"/>
+			<target ref="id53"/>
+			<label kind="select" x="-272" y="-238">s : int[0,MemoryMaxIndex - 1],
+e : int[0,MemoryMaxIndex - 1]</label>
+			<label kind="guard" x="-272" y="-204">canExecute(s,e)</label>
+			<label kind="synchronisation" x="-272" y="-187">ExecuteMemory[s][e]?</label>
+			<nail x="-221" y="-272"/>
+			<nail x="-187" y="-272"/>
+		</transition>
+		<transition>
+			<source ref="id53"/>
+			<target ref="id55"/>
+			<label kind="select" x="-17" y="-450">s : int[0,MemoryMaxIndex - 1],
+e : int[0,MemoryMaxIndex - 1]</label>
+			<label kind="guard" x="-17" y="-416">canWrite(s,e)</label>
+			<label kind="synchronisation" x="-17" y="-399">WriteMemory[s][e]?</label>
+			<label kind="assignment" x="-17" y="-382">start = s,
+end = e</label>
+			<nail x="-178" y="-374"/>
+			<nail x="-34" y="-374"/>
+		</transition>
+		<transition>
+			<source ref="id53"/>
+			<target ref="id56"/>
+			<label kind="select" x="-484" y="-459">s : int[0,MemoryMaxIndex - 1],
+e : int[0,MemoryMaxIndex - 1]</label>
+			<label kind="guard" x="-484" y="-425">canRead(s, e)</label>
+			<label kind="synchronisation" x="-484" y="-408">ReadMemory[s][e]?</label>
+			<label kind="assignment" x="-484" y="-391">start = s,
+end = e</label>
+			<nail x="-238" y="-374"/>
+			<nail x="-382" y="-374"/>
+		</transition>
+		<transition>
+			<source ref="id54"/>
+			<target ref="id53"/>
+			<label kind="synchronisation" x="-238" y="-501">PowerOnBC?</label>
+			<label kind="assignment" x="-238" y="-484">initializePmp()</label>
+			<nail x="-238" y="-510"/>
+			<nail x="-238" y="-442"/>
+			<nail x="-136" y="-442"/>
+			<nail x="-136" y="-408"/>
+			<nail x="-204" y="-408"/>
 		</transition>
 	</template>
 	<template>
@@ -1043,79 +1292,128 @@ bool canExecute(int startIndex, int endIndex){
                 return true;
     return false;
 }</declaration>
-		<location id="id48" x="-204" y="-340">
+		<location id="id57" x="-204" y="-340">
 		</location>
-		<location id="id49" x="-136" y="-510">
+		<location id="id58" x="-136" y="-510">
 		</location>
-		<location id="id50" x="-34" y="-340">
+		<location id="id59" x="136" y="-340">
 			<committed/>
 		</location>
-		<location id="id51" x="-382" y="-340">
+		<location id="id60" x="-544" y="-340">
 			<committed/>
 		</location>
-		<init ref="id49"/>
+		<location id="id61" x="136" y="-136">
+			<committed/>
+		</location>
+		<init ref="id58"/>
 		<transition>
-			<source ref="id51"/>
-			<target ref="id48"/>
-			<label kind="synchronisation" x="-493" y="-297">PmpReadMemory[start][end]!</label>
-			<label kind="assignment" x="-493" y="-280">start = 0,
-end = 0</label>
-			<nail x="-382" y="-306"/>
-			<nail x="-238" y="-306"/>
+			<source ref="id61"/>
+			<target ref="id57"/>
+			<label kind="synchronisation" x="144" y="-187">RaiseException!</label>
+			<nail x="136" y="-170"/>
+			<nail x="-68" y="-170"/>
 		</transition>
 		<transition>
-			<source ref="id50"/>
-			<target ref="id48"/>
+			<source ref="id57"/>
+			<target ref="id61"/>
+			<label kind="select" x="-102" y="-127">s : int[0,MemoryMaxIndex - 1],
+e : int[0,MemoryMaxIndex - 1]</label>
+			<label kind="guard" x="-102" y="-93">!canExecute(s,e)</label>
+			<label kind="synchronisation" x="-102" y="-76">TryExecuteMemory[s][e]?</label>
+			<nail x="-102" y="-136"/>
+		</transition>
+		<transition>
+			<source ref="id59"/>
+			<target ref="id57"/>
+			<label kind="guard" x="-35" y="-416">!canWrite(start,end)</label>
+			<label kind="synchronisation" x="-34" y="-399">RaiseException!</label>
+			<label kind="assignment" x="-34" y="-382">start = 0,
+end = 0</label>
+		</transition>
+		<transition>
+			<source ref="id60"/>
+			<target ref="id57"/>
+			<label kind="guard" x="-484" y="-416">!canRead(start,end)</label>
+			<label kind="synchronisation" x="-484" y="-399">RaiseException!</label>
+			<label kind="assignment" x="-484" y="-382">start = 0,
+end = 0</label>
+		</transition>
+		<transition>
+			<source ref="id60"/>
+			<target ref="id57"/>
+			<label kind="guard" x="-510" y="-280">canRead(start, end)</label>
+			<label kind="synchronisation" x="-510" y="-263">PmpReadMemory[start][end]!</label>
+			<label kind="assignment" x="-510" y="-246">start = 0,
+end = 0</label>
+			<nail x="-544" y="-204"/>
+			<nail x="-340" y="-204"/>
+		</transition>
+		<transition>
+			<source ref="id59"/>
+			<target ref="id57"/>
+			<label kind="guard" x="-50" y="-238">canWrite(start,end)</label>
 			<label kind="synchronisation" x="-51" y="-297">PmpWriteMemory[start][end]!</label>
 			<label kind="assignment" x="-51" y="-280">start = 0,
 end = 0</label>
-			<nail x="-34" y="-306"/>
-			<nail x="-170" y="-306"/>
+			<nail x="136" y="-204"/>
+			<nail x="-68" y="-204"/>
 		</transition>
 		<transition>
-			<source ref="id48"/>
-			<target ref="id48"/>
-			<label kind="select" x="-272" y="-238">s : int[0,MemoryMaxIndex - 1],
+			<source ref="id57"/>
+			<target ref="id57"/>
+			<label kind="select" x="-374" y="-187">s : int[0,MemoryMaxIndex - 1],
 e : int[0,MemoryMaxIndex - 1]</label>
-			<label kind="guard" x="-272" y="-204">canExecute(s,e)</label>
-			<label kind="synchronisation" x="-272" y="-187">ExecuteMemory[s][e]?</label>
-			<nail x="-221" y="-272"/>
-			<nail x="-187" y="-272"/>
+			<label kind="guard" x="-374" y="-153">canExecute(s,e)</label>
+			<label kind="synchronisation" x="-374" y="-136">TryExecuteMemory[s][e]?</label>
+			<nail x="-306" y="-204"/>
+			<nail x="-238" y="-204"/>
 		</transition>
 		<transition>
-			<source ref="id48"/>
-			<target ref="id50"/>
-			<label kind="select" x="-17" y="-450">s : int[0,MemoryMaxIndex - 1],
+			<source ref="id57"/>
+			<target ref="id59"/>
+			<label kind="select" x="0" y="-578">s : int[0,MemoryMaxIndex - 1],
 e : int[0,MemoryMaxIndex - 1]</label>
-			<label kind="guard" x="-17" y="-416">canWrite(s,e)</label>
-			<label kind="synchronisation" x="-17" y="-399">WriteMemory[s][e]?</label>
-			<label kind="assignment" x="-17" y="-382">start = s,
+			<label kind="synchronisation" x="0" y="-535">TryWriteMemory[s][e]?</label>
+			<label kind="assignment" x="0" y="-518">start = s,
 end = e</label>
-			<nail x="-178" y="-374"/>
-			<nail x="-34" y="-374"/>
+			<nail x="-68" y="-476"/>
+			<nail x="136" y="-476"/>
 		</transition>
 		<transition>
-			<source ref="id48"/>
-			<target ref="id51"/>
-			<label kind="select" x="-484" y="-459">s : int[0,MemoryMaxIndex - 1],
+			<source ref="id57"/>
+			<target ref="id60"/>
+			<label kind="select" x="-510" y="-578">s : int[0,MemoryMaxIndex - 1],
 e : int[0,MemoryMaxIndex - 1]</label>
-			<label kind="guard" x="-484" y="-425">canRead(s, e)</label>
-			<label kind="synchronisation" x="-484" y="-408">ReadMemory[s][e]?</label>
-			<label kind="assignment" x="-484" y="-391">start = s,
+			<label kind="synchronisation" x="-510" y="-544">TryReadMemory[s][e]?</label>
+			<label kind="assignment" x="-510" y="-527">start = s,
 end = e</label>
-			<nail x="-238" y="-374"/>
-			<nail x="-382" y="-374"/>
+			<nail x="-340" y="-476"/>
+			<nail x="-544" y="-476"/>
 		</transition>
 		<transition>
-			<source ref="id49"/>
-			<target ref="id48"/>
+			<source ref="id58"/>
+			<target ref="id57"/>
 			<label kind="synchronisation" x="-238" y="-501">PowerOnBC?</label>
 			<label kind="assignment" x="-238" y="-484">initializePmp()</label>
 			<nail x="-238" y="-510"/>
 			<nail x="-238" y="-442"/>
-			<nail x="-136" y="-442"/>
-			<nail x="-136" y="-408"/>
+			<nail x="-204" y="-442"/>
 			<nail x="-204" y="-408"/>
+			<nail x="-204" y="-408"/>
+		</transition>
+	</template>
+	<template>
+		<name>ExceptionHandler</name>
+		<location id="id62" x="-102" y="-102">
+			<name x="-85" y="-136">Exception_Raised</name>
+		</location>
+		<location id="id63" x="-238" y="-102">
+		</location>
+		<init ref="id63"/>
+		<transition>
+			<source ref="id63"/>
+			<target ref="id62"/>
+			<label kind="synchronisation" x="-221" y="-136">RaiseException?</label>
 		</transition>
 	</template>
 	<system>system SystemReset, ROMStage, Memory, rom_ext_manifests_to_try, CheckPubKeyValid, ValidityCheckObserver, 
@@ -1127,11 +1425,15 @@ end = e</label>
 			<comment>Whenever the rom ext is running, it must be true, that the PMP regions allow for executing that entrypoint.</comment>
 		</query>
 		<query>
+			<formula>E[] not( ROMStage.Boot_Failed || ROMStage.Rom_Ext_terminated)</formula>
+			<comment></comment>
+		</query>
+		<query>
 			<formula>A[] not( ROMStage.Boot_Failed || ROMStage.Rom_Ext_terminated)</formula>
 			<comment>The ROM Stage will never fail. This is due to the hardcoded values in the manifest / memory. If we eventually implement non-determinism, we expect that this property might not hold.</comment>
 		</query>
 		<query>
-			<formula>exists (i : int[0,9]) PowerMod(ROMStage.currentManifest.signature[i], ROMStage.currentManifest.pub_signature_key.exponent,ROMStage.currentManifest.pub_signature_key.modulus) != ROMStage.currentManifest.image_code[i] --&gt; ROMStage.StartOfLoop</formula>
+			<formula>exists (i : int[0,imageCodeSize - 1]) PowerMod(ROMStage.currentManifest.signature[i], ROMStage.currentManifest.pub_signature_key.exponent,ROMStage.currentManifest.pub_signature_key.modulus) != ROMStage.currentManifest.image_code[i] --&gt; (ROMStage.StartOfLoop || ROMStage.Boot_Failed)</formula>
 			<comment>If the signature cannot be decrypted and be equal to the image code, the state will eventually be back to startOfLoop</comment>
 		</query>
 		<query>
@@ -1139,7 +1441,11 @@ end = e</label>
 			<comment>If the key is not a trusted public key, we will eventually go back to the start of loop.</comment>
 		</query>
 		<query>
-			<formula>ROMStage.currentManifest.identifier == 0 --&gt; ROMStage.StartOfLoop</formula>
+			<formula>A[] ROMStage.ReadyToRunROMExt imply ROMStage.currentManifest.identifier != 0</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>ROMStage.currentManifest.identifier == 0 --&gt; (ROMStage.StartOfLoop || ROMStage.Boot_Failed)</formula>
 			<comment>If the manifest has an identifier of 0 (meaning that the identifier is "empty"), then the ROMStage template will go back to StartOfLoop indicating failure to verify that ROM ext manifest.</comment>
 		</query>
 		<query>
