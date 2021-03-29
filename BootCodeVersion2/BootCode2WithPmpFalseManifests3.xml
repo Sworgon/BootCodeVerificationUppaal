@@ -15,6 +15,7 @@ const int NumberOfFlashBanks = 2; // Should be 2 when loading correctly.
 const int NumberOfTrustedKeys = 2;
 const int exponent = 7;
 
+
 typedef struct{
     int identifier;
     int rom_ext_slot[NumberOfFlashBanks]; // Address of Flash Bank
@@ -431,8 +432,8 @@ void readPublicKey(){
 }
 
 void pmpUnlockRomExt(){
-    PmpRegions[0].startAddress = bootPolicy.rom_ext_slot[loopIndex] + 8; 
-    PmpRegions[0].endAddress = bootPolicy.rom_ext_slot[loopIndex] + 11;
+    PmpRegions[0].startAddress = currentManifest.entryPoint; 
+    PmpRegions[0].endAddress = currentManifest.entryPoint + 3;
     PmpRegions[0].locked = true;
     PmpRegions[0].read = true;
     PmpRegions[0].execute = true;
@@ -446,17 +447,17 @@ void pmpUnlockRomExt(){
 		<location id="id6" x="238" y="-476">
 			<name x="255" y="-484">ROM_Ext_Running</name>
 		</location>
-		<location id="id7" x="238" y="-263">
-			<name x="255" y="-272">Unlock_ROM_Ext</name>
+		<location id="id7" x="238" y="-255">
+			<name x="255" y="-264">Unlock_ROM_Ext</name>
 		</location>
 		<location id="id8" x="238" y="-187">
 			<name x="255" y="-187">Checking_Signature</name>
 		</location>
 		<location id="id9" x="-85" y="-187">
-			<name x="-246" y="-170">Checking_Pub_key_Valid</name>
+			<name x="-246" y="-170">Checking_Pub_Key_Valid</name>
 		</location>
 		<location id="id10" x="-85" y="-357">
-			<name x="-68" y="-374">Checking_ROM_ext_Manifest</name>
+			<name x="-68" y="-374">Checking_ROM_Ext_Manifest</name>
 		</location>
 		<location id="id11" x="-85" y="-561">
 			<name x="-68" y="-578">Boot_Failed</name>

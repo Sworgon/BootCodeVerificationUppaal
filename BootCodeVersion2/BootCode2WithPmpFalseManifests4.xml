@@ -14,7 +14,7 @@ const int MemoryMaxIndex = 150;
 const int NumberOfFlashBanks = 1; // Should be 2 when loading correctly.
 const int NumberOfTrustedKeys = 2;
 const int exponent = 7;
-const int imageCodeSize = 3;
+const int imageCodeSize = 4; 
 
 typedef struct{
     int identifier;
@@ -448,16 +448,13 @@ pub_key_t key;
 //int entryPoint;
 
 
-
-
-
 void readPublicKey(){
     key = currentManifest.pub_signature_key;
 }
 
 void pmpUnlockRomExt(){
-    PmpRegions[0].startAddress = bootPolicy.rom_ext_slot[loopIndex] + 8; 
-    PmpRegions[0].endAddress = bootPolicy.rom_ext_slot[loopIndex] + 11;
+    PmpRegions[0].startAddress = currentManifest.entryPoint; 
+    PmpRegions[0].endAddress = currentManifest.entryPoint + imageCodeSize;
     PmpRegions[0].locked = true;
     PmpRegions[0].read = true;
     PmpRegions[0].execute = true;
@@ -713,7 +710,7 @@ ClearGlobalManifest()</label>
 		<transition>
 			<source ref="id24"/>
 			<target ref="id23"/>
-			<label kind="synchronisation" x="-238" y="-76">ReadMemory[21][29]!</label>
+			<label kind="synchronisation" x="-238" y="-76">TryReadMemory[21][29]!</label>
 		</transition>
 		<transition>
 			<source ref="id25"/>
@@ -810,7 +807,7 @@ void returnManifests(){
 			<label kind="select" x="935" y="-204">i : int[1,2]</label>
 			<label kind="guard" x="935" y="-187">loopIndex &lt; imageCodeSize</label>
 			<label kind="assignment" x="935" y="-170">manifest.image_code[loopIndex] = i,
-manifest.signature[loopIndex] = PowerMod(i,103,143 + manifest.identifier),
+manifest.signature[loopIndex] = PowerMod(i,103,143 + manifest.identifier - 1),
 loopIndex++</label>
 			<nail x="918" y="-204"/>
 			<nail x="918" y="-136"/>
@@ -832,7 +829,7 @@ returnManifests()</label>
 		<transition>
 			<source ref="id30"/>
 			<target ref="id33"/>
-			<label kind="select" x="857" y="-323">i : int[0,1]</label>
+			<label kind="select" x="857" y="-323">i : int[0,2]</label>
 			<label kind="assignment" x="858" y="-306">manifest.identifier = i</label>
 		</transition>
 		<transition>
@@ -975,7 +972,7 @@ setReadIndices()</label>
 		<transition>
 			<source ref="id41"/>
 			<target ref="id40"/>
-			<label kind="synchronisation" x="-578" y="-314">ExecuteMemory[currentManifest.entryPoint][currentManifest.entryPoint]!</label>
+			<label kind="synchronisation" x="-578" y="-314">TryExecuteMemory[currentManifest.entryPoint][currentManifest.entryPoint]!</label>
 		</transition>
 		<transition>
 			<source ref="id42"/>
@@ -1006,7 +1003,7 @@ bool checkPublicKey(){
 		<transition>
 			<source ref="id44"/>
 			<target ref="id43"/>
-			<label kind="synchronisation" x="-246" y="-314">ReadMemory[18][19]!</label>
+			<label kind="synchronisation" x="-246" y="-314">TryReadMemory[18][19]!</label>
 		</transition>
 		<transition>
 			<source ref="id43"/>
@@ -1214,7 +1211,7 @@ end = 0</label>
 			<label kind="select" x="-272" y="-238">s : int[0,MemoryMaxIndex - 1],
 e : int[0,MemoryMaxIndex - 1]</label>
 			<label kind="guard" x="-272" y="-204">canExecute(s,e)</label>
-			<label kind="synchronisation" x="-272" y="-187">ExecuteMemory[s][e]?</label>
+			<label kind="synchronisation" x="-272" y="-187">TryExecuteMemory[s][e]?</label>
 			<nail x="-221" y="-272"/>
 			<nail x="-187" y="-272"/>
 		</transition>
@@ -1224,7 +1221,7 @@ e : int[0,MemoryMaxIndex - 1]</label>
 			<label kind="select" x="-17" y="-450">s : int[0,MemoryMaxIndex - 1],
 e : int[0,MemoryMaxIndex - 1]</label>
 			<label kind="guard" x="-17" y="-416">canWrite(s,e)</label>
-			<label kind="synchronisation" x="-17" y="-399">WriteMemory[s][e]?</label>
+			<label kind="synchronisation" x="-17" y="-399">TryWriteMemory[s][e]?</label>
 			<label kind="assignment" x="-17" y="-382">start = s,
 end = e</label>
 			<nail x="-178" y="-374"/>
@@ -1236,7 +1233,7 @@ end = e</label>
 			<label kind="select" x="-484" y="-459">s : int[0,MemoryMaxIndex - 1],
 e : int[0,MemoryMaxIndex - 1]</label>
 			<label kind="guard" x="-484" y="-425">canRead(s, e)</label>
-			<label kind="synchronisation" x="-484" y="-408">ReadMemory[s][e]?</label>
+			<label kind="synchronisation" x="-484" y="-408">TryReadMemory[s][e]?</label>
 			<label kind="assignment" x="-484" y="-391">start = s,
 end = e</label>
 			<nail x="-238" y="-374"/>
@@ -1293,33 +1290,37 @@ bool canExecute(int startIndex, int endIndex){
     return false;
 }</declaration>
 		<location id="id57" x="-204" y="-340">
+			<name x="-212" y="-314">Idle</name>
 		</location>
-		<location id="id58" x="-136" y="-510">
+		<location id="id58" x="-238" y="-493">
+			<name x="-248" y="-527">Initial</name>
 		</location>
 		<location id="id59" x="136" y="-340">
+			<name x="153" y="-357">Writing_Memory</name>
 			<committed/>
 		</location>
 		<location id="id60" x="-544" y="-340">
+			<name x="-663" y="-374">Reading_Memory</name>
 			<committed/>
 		</location>
-		<location id="id61" x="136" y="-136">
+		<location id="id61" x="-85" y="-153">
+			<name x="-68" y="-161">CannotExecute</name>
 			<committed/>
 		</location>
 		<init ref="id58"/>
 		<transition>
 			<source ref="id61"/>
 			<target ref="id57"/>
-			<label kind="synchronisation" x="144" y="-187">RaiseException!</label>
-			<nail x="136" y="-170"/>
+			<label kind="synchronisation" x="-68" y="-187">RaiseException!</label>
 			<nail x="-68" y="-170"/>
 		</transition>
 		<transition>
 			<source ref="id57"/>
 			<target ref="id61"/>
-			<label kind="select" x="-102" y="-127">s : int[0,MemoryMaxIndex - 1],
+			<label kind="select" x="-212" y="-136">s : int[0,MemoryMaxIndex - 1],
 e : int[0,MemoryMaxIndex - 1]</label>
-			<label kind="guard" x="-102" y="-93">!canExecute(s,e)</label>
-			<label kind="synchronisation" x="-102" y="-76">TryExecuteMemory[s][e]?</label>
+			<label kind="guard" x="-212" y="-102">!canExecute(s,e)</label>
+			<label kind="synchronisation" x="-212" y="-85">TryExecuteMemory[s][e]?</label>
 			<nail x="-102" y="-136"/>
 		</transition>
 		<transition>
@@ -1333,9 +1334,9 @@ end = 0</label>
 		<transition>
 			<source ref="id60"/>
 			<target ref="id57"/>
-			<label kind="guard" x="-484" y="-416">!canRead(start,end)</label>
-			<label kind="synchronisation" x="-484" y="-399">RaiseException!</label>
-			<label kind="assignment" x="-484" y="-382">start = 0,
+			<label kind="guard" x="-433" y="-416">!canRead(start,end)</label>
+			<label kind="synchronisation" x="-433" y="-399">RaiseException!</label>
+			<label kind="assignment" x="-433" y="-382">start = 0,
 end = 0</label>
 		</transition>
 		<transition>
@@ -1361,12 +1362,12 @@ end = 0</label>
 		<transition>
 			<source ref="id57"/>
 			<target ref="id57"/>
-			<label kind="select" x="-374" y="-187">s : int[0,MemoryMaxIndex - 1],
+			<label kind="select" x="-450" y="-127">s : int[0,MemoryMaxIndex - 1],
 e : int[0,MemoryMaxIndex - 1]</label>
-			<label kind="guard" x="-374" y="-153">canExecute(s,e)</label>
-			<label kind="synchronisation" x="-374" y="-136">TryExecuteMemory[s][e]?</label>
-			<nail x="-306" y="-204"/>
-			<nail x="-238" y="-204"/>
+			<label kind="guard" x="-450" y="-93">canExecute(s,e)</label>
+			<label kind="synchronisation" x="-450" y="-76">TryExecuteMemory[s][e]?</label>
+			<nail x="-340" y="-170"/>
+			<nail x="-306" y="-136"/>
 		</transition>
 		<transition>
 			<source ref="id57"/>
@@ -1393,12 +1394,12 @@ end = e</label>
 		<transition>
 			<source ref="id58"/>
 			<target ref="id57"/>
-			<label kind="synchronisation" x="-238" y="-501">PowerOnBC?</label>
-			<label kind="assignment" x="-238" y="-484">initializePmp()</label>
-			<nail x="-238" y="-510"/>
+			<label kind="synchronisation" x="-229" y="-484">PowerOnBC?</label>
+			<label kind="assignment" x="-229" y="-467">initializePmp()</label>
+			<nail x="-238" y="-467"/>
+			<nail x="-238" y="-459"/>
 			<nail x="-238" y="-442"/>
 			<nail x="-204" y="-442"/>
-			<nail x="-204" y="-408"/>
 			<nail x="-204" y="-408"/>
 		</transition>
 	</template>
@@ -1416,8 +1417,18 @@ end = e</label>
 			<label kind="synchronisation" x="-221" y="-136">RaiseException?</label>
 		</transition>
 	</template>
+	<template>
+		<name>KeyManager</name>
+		<declaration>// Contains keys
+// derives keys from other keys and seeds
+// makes keys visible to certain other SW components.</declaration>
+		<location id="id64" x="-59" y="-25">
+		</location>
+		<init ref="id64"/>
+	</template>
 	<system>system SystemReset, ROMStage, Memory, rom_ext_manifests_to_try, CheckPubKeyValid, ValidityCheckObserver, 
-       RSAModule, RomExt, PmpModule, Zeno, final_jump_to_rom_ext, ReadBootPolicy, CheckRomExtManifest;
+       RSAModule, RomExt, PmpModule, Zeno, final_jump_to_rom_ext, ReadBootPolicy, CheckRomExtManifest, 
+       ExceptionHandler;
     </system>
 	<queries>
 		<query>
