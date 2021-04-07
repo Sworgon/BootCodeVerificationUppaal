@@ -41,7 +41,7 @@ typedef struct {
 } sig_key_t;
 
 typedef struct {
-    int[0,2] identifier; // 0 -&gt; missing, 1 -&gt; contains magic value, 2 -&gt; containsn't magic value
+    int[0,2] identifier; // 0 -&gt; missing, 1 -&gt; contains magic value, 2 -&gt; does not contain magic value
     int entryPoint; //address in memory
     int[0,2] signature; // 0 -&gt; missing, 1 -&gt; correct signature, 2 -&gt; bad signature
     //pub_key_t pub_signature_key;
@@ -1067,8 +1067,7 @@ void clear(){
 			<source ref="id50"/>
 			<target ref="id52"/>
 			<label kind="synchronisation" x="-561" y="-493">HMACReturn?</label>
-			<label kind="assignment" x="-560" y="-476">signature = GlobalImageCode,
-GlobalImageCode = 0</label>
+			<label kind="assignment" x="-561" y="-459">GlobalImageCode = 0</label>
 		</transition>
 		<transition>
 			<source ref="id53"/>
@@ -1838,6 +1837,10 @@ GlobalSecretKey = 0</label>
 		<query>
 			<formula>(ROMStage.currentManifest.signature != 1 || ROMStage.currentManifest.image_code != 1) --&gt; (ROMStage.StartOfLoop || ROMStage.Boot_Failed)</formula>
 			<comment>If the signature cannot be decrypted and be equal to the image code, the state will eventually be back to startOfLoop</comment>
+		</query>
+		<query>
+			<formula>A[] ROMStage.ReadyToRunROMExt imply (ROMStage.currentManifest.signature == 1 &amp;&amp; ROMStage.currentManifest.image_code == 1)</formula>
+			<comment></comment>
 		</query>
 		<query>
 			<formula>A[] ROMStage.ReadyToRunROMExt imply ROMStage.currentManifest.identifier == 1</formula>
