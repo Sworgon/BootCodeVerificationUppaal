@@ -15,7 +15,7 @@ const int NumberOfFlashBanks = 1; // Should be 2 when loading correctly.
 const int NumberOfTrustedKeys = 2;
 const int exponent = 7;
 const int imageCodeSize = 1; 
-const int identifier = 27;
+const int identifier = 28;
 
 typedef struct{
     int identifier;
@@ -84,6 +84,7 @@ int GlobalSecretKey;
 int GlobalKMACResult;
 rom_ext_manifest_t GlobalManifest;
 life_cycle_state_t GlobalLifeCycleState;
+bool GlobalMemoryIsScrambled;
 
 broadcast chan PowerOnBC;
 chan StartRomStage;
@@ -139,6 +140,9 @@ chan ReturnSecretKey,
      RequestSecretKey;
 
 chan AdvanceKMState;
+
+//chan FlashRead[MemoryMaxIndex][MemoryMaxIndex];
+//chan FlashWrite[MemoryMaxIndex][MemoryMaxIndex];
 
 void clearGlobalMemory(){
     int i;

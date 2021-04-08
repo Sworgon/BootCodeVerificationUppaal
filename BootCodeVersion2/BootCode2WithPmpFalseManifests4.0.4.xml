@@ -462,10 +462,11 @@ endIndex = 0</label>
 		<transition>
 			<source ref="id5"/>
 			<target ref="id6"/>
-			<label kind="select" x="8" y="-127">s : int[0,MemoryMaxIndex],
+			<label kind="select" x="17" y="-144">s : int[0,MemoryMaxIndex],
 e : int[0,MemoryMaxIndex]</label>
-			<label kind="guard" x="25" y="-93">!existsInSRAM(s,e)</label>
-			<label kind="assignment" x="25" y="-76">startIndex = s,
+			<label kind="guard" x="34" y="-110">!existsInSRAM(s,e)</label>
+			<label kind="synchronisation" x="43" y="-93">ReadSRAM[s][e]?</label>
+			<label kind="assignment" x="34" y="-76">startIndex = s,
 endIndex = e</label>
 			<nail x="34" y="-34"/>
 		</transition>
@@ -1948,7 +1949,7 @@ GlobalSecretKey = 0</label>
 			<nail x="391" y="187"/>
 		</transition>
 	</template>
-	<system>system SystemReset, ROMStage, Flash, SRAM, rom_ext_manifests_to_try, CheckPubKeyValid, ValidityCheckObserver, 
+	<system>system SystemReset, ROMStage, Flash, rom_ext_manifests_to_try, CheckPubKeyValid, ValidityCheckObserver, 
        RSAModule, RomExt, PmpModule, Zeno, final_jump_to_rom_ext, ReadBootPolicy, CheckRomExtManifest, 
        ExceptionHandler, ReadPublicKey, LifeCycleController, HMAC, KeyManager, KMAC;
     </system>
