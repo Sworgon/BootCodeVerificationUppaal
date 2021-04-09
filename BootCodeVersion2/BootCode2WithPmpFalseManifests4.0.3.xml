@@ -10,7 +10,7 @@ Public Key: (143, 7)
 Primes: p = 11, q = 13
 Totient = 120
 */
-const int MemoryMaxIndex = 150;
+const int MemoryMaxIndex = 100;
 const int NumberOfFlashBanks = 1; // Should be 2 when loading correctly.
 const int NumberOfTrustedKeys = 2;
 const int exponent = 7;
@@ -141,8 +141,8 @@ chan ReturnSecretKey,
 
 chan AdvanceKMState;
 
-//chan FlashRead[MemoryMaxIndex][MemoryMaxIndex];
-//chan FlashWrite[MemoryMaxIndex][MemoryMaxIndex];
+chan nogetAndet[MemoryMaxIndex][MemoryMaxIndex];
+chan nogetTredje[MemoryMaxIndex][MemoryMaxIndex];
 
 void clearGlobalMemory(){
     int i;
