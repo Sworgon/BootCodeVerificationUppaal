@@ -11,11 +11,7 @@ Primes: p = 11, q = 13
 Totient = 120
 */
 const int MemoryMaxIndex = 100;
-const int NumberOfFlashBanks = 1; // Should be 2 when loading correctly.
-const int NumberOfTrustedKeys = 2;
-const int exponent = 7;
-const int imageCodeSize = 1; 
-const int identifier = 27;
+const int NumberOfFlashBanks = 1; 
 
 typedef struct{
     int identifier;
@@ -76,7 +72,6 @@ PmpRegion_t PmpRegions[16];
 boot_policy_t GlobalBootPolicy;
 rom_exts_manifests_t GlobalRomExtsManifests;
 pub_key_t GlobalPublicKey;
-pub_key_t GlobalPublicKeyArray[NumberOfTrustedKeys];
 //bool GlobalBool;
 int GlobalSignature;
 int GlobalImageCode;
@@ -201,11 +196,8 @@ void ClearGlobalManifest(){
     int i;
     GlobalManifest.identifier = 0;
     GlobalManifest.entryPoint = 0; 
-    
-    for(i = 0; i &lt; imageCodeSize; i++){
-        GlobalManifest.image_code = 0;
-        GlobalManifest.signature = 0;
-    }
+    GlobalManifest.image_code = 0;
+    GlobalManifest.signature = 0;
 }
 
 void ClearGlobalLifeCycleState(){
@@ -252,7 +244,6 @@ The 12 first indexes are for manifest of following structure:
 8-11: Image Code
 */
 rom_exts_manifests_t manifests;
-const pub_key_t trustedPublicKeys[NumberOfTrustedKeys] = { {7, 143}, {11, 221 } };
 
 
 
@@ -277,14 +268,11 @@ void initializeMemory(){
 void readMemory(int startIndex, int endIndex){
     if(startIndex &gt;= 0 &amp;&amp; endIndex &lt;= 19){
         //Something from ROM
-        if (startIndex == 13 &amp;&amp; endIndex == 13){
+        if (startIndex == 13 &amp;&amp; endIndex == 13){ // Global public key used for signature verification.
             GlobalPublicKey.exponent = 7;
             GlobalPublicKey.modulus = 143;
+            GlobalMemoryIsScrambled = true;
         }
-        
-        if (startIndex == 18 &amp;&amp; endIndex == 19)
-            GlobalPublicKeyArray = trustedPublicKeys;
-            //Maybe not relevant anymore 29-03-2021
     }
     if(startIndex &gt;= 20 &amp;&amp; endIndex &lt;= 29){
         //Something from Flash Info
@@ -400,6 +388,7 @@ bool existsInSRAM(int startIndex, int endIndex){
 		<transition>
 			<source ref="id5"/>
 			<target ref="id7"/>
+			<label kind="guard" x="-221" y="-76">scrambleKey == 0</label>
 			<label kind="synchronisation" x="-221" y="-59">RequestScrambleKey!</label>
 			<nail x="-102" y="-34"/>
 		</transition>
@@ -467,7 +456,7 @@ pub_key_t key;
 
 void pmpUnlockRomExt(){
     PmpRegions[0].startAddress = currentManifest.entryPoint; 
-    PmpRegions[0].endAddress = currentManifest.entryPoint + imageCodeSize;
+    PmpRegions[0].endAddress = currentManifest.entryPoint + 1;
     PmpRegions[0].locked = true;
     PmpRegions[0].read = true;
     PmpRegions[0].execute = true;
@@ -478,12 +467,8 @@ void clearManifest(){
     int i;
     currentManifest.identifier = 0;
     currentManifest.entryPoint = 0; 
-    
-    for(i = 0; i &lt; imageCodeSize; i++){
-        currentManifest.image_code = 0;
-        currentManifest.signature = 0;
-    }
-    
+    currentManifest.image_code = 0;
+    currentManifest.signature = 0;
 }
 </declaration>
 		<location id="id8" x="238" y="-561">
@@ -833,7 +818,7 @@ void returnManifests(){
 */
 </declaration>
 		<location id="id36" x="799" y="-221">
-			<name x="789" y="-255">Loop</name>
+			<name x="789" y="-255">GeneratingManifest</name>
 		</location>
 		<location id="id37" x="629" y="-221">
 			<name x="586" y="-229">Idle</name>
@@ -841,22 +826,13 @@ void returnManifests(){
 		<init ref="id37"/>
 		<transition>
 			<source ref="id36"/>
-			<target ref="id36"/>
-			<label kind="select" x="884" y="-255">i : int[1,2],
-j : int[0,1]</label>
-			<label kind="guard" x="884" y="-221">loopIndex &lt; imageCodeSize</label>
-			<label kind="assignment" x="884" y="-204">manifest.image_code = i,
-manifest.signature = j,
-loopIndex++</label>
-			<nail x="867" y="-255"/>
-			<nail x="867" y="-187"/>
-		</transition>
-		<transition>
-			<source ref="id36"/>
 			<target ref="id37"/>
-			<label kind="guard" x="637" y="-170">loopIndex &gt;= imageCodeSize</label>
-			<label kind="synchronisation" x="637" y="-153">REMTTReturn!</label>
-			<label kind="assignment" x="637" y="-136">returnManifests()</label>
+			<label kind="select" x="731" y="-178">i : int[1,2],
+j : int[0,1]</label>
+			<label kind="synchronisation" x="731" y="-144">REMTTReturn!</label>
+			<label kind="assignment" x="731" y="-127">manifest.image_code = i,
+manifest.signature = j,
+returnManifests()</label>
 			<nail x="714" y="-170"/>
 		</transition>
 		<transition>
@@ -1014,9 +990,9 @@ ClearGlobalManifest()</label>
 
 bool checkPublicKey(){
     int i;
-    for(i = 0; i &lt; NumberOfTrustedKeys; i++)    
-        if (GlobalPublicKeyArray[i] == publicKey)
-                return true;
+    //for(i = 0; i &lt; 0; i++)    
+        //if (GlobalPublicKeyArray[i] == publicKey)
+                //return true;
     return false;
 }</declaration>
 		<location id="id47" x="-68" y="-289">
