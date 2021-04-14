@@ -12,7 +12,7 @@ Totient = 120
 */
 const int MemoryMaxIndex = 100;
 const int NumberOfFlashBanks = 1; 
-const int NumberOfKeysInWhitelist = 1;
+const int NumberOfKeysInWhitelist = 1; //Calculated ids will always be either 1 or 0 so more ids in whitelist does not add anything atm.
 
 typedef struct{
     int identifier;
@@ -82,7 +82,7 @@ int GlobalKMACResult;
 rom_ext_manifest_t GlobalManifest;
 life_cycle_state_t GlobalLifeCycleState;
 bool GlobalMemoryIsScrambled; // Indicates whether the most recently read memory was scrambled or not.
-int[0,1] GlobalPublicKeyIdWhitelist[NumberOfKeysInWhitelist];
+int[0, NumberOfKeysInWhitelist] GlobalPublicKeyIdWhitelist[NumberOfKeysInWhitelist];
 
 broadcast chan PowerOnBC;
 chan StartRomStage;
@@ -255,7 +255,7 @@ The 12 first indexes are for manifest of following structure:
 8-11: Image Code
 */
 rom_exts_manifests_t manifests;
-
+int[0, NumberOfKeysInWhitelist] pubKeyWhitelist[NumberOfKeysInWhitelist];
 
 
 void loadManifest(){
@@ -273,14 +273,19 @@ void loadManifest(){
 }
 
 void initializeMemory(){
+    int i;
     loadManifest();
+    
+    for(i = 0; i &lt; NumberOfKeysInWhitelist; i++){
+        pubKeyWhitelist[i] = i + 1;
+    }
 }
 
 void readMemory(int startIndex, int endIndex){
     if(startIndex &gt;= 0 &amp;&amp; endIndex &lt;= 19){
         //Something from ROM
         if (startIndex == 13 &amp;&amp; endIndex == 13){ // public key id whitelist used for public key verification.
-            GlobalPublicKeyIdWhitelist[0] = 1; //Should be changed to an actual transference of an array from flash into the global array
+            GlobalPublicKeyIdWhitelist = pubKeyWhitelist; //Should be changed to an actual transference of an array from flash into the global array
             GlobalMemoryIsScrambled = true;
         }
     }
@@ -393,6 +398,7 @@ bool existsInSRAM(int startIndex, int endIndex){
 			<committed/>
 		</location>
 		<location id="id7" x="-170" y="0">
+			<committed/>
 		</location>
 		<init ref="id5"/>
 		<transition>
@@ -466,7 +472,7 @@ pub_key_t key;
 
 void pmpUnlockRomExt(){
     PmpRegions[0].startAddress = currentManifest.entryPoint; 
-    PmpRegions[0].endAddress = currentManifest.entryPoint + 1;
+    PmpRegions[0].endAddress = currentManifest.entryPoint + 4;
     PmpRegions[0].locked = true;
     PmpRegions[0].read = true;
     PmpRegions[0].execute = true;
@@ -987,10 +993,10 @@ setReadIndices()</label>
 		</location>
 		<location id="id43" x="-255" y="-391">
 		</location>
-		<location id="id44" x="-102" y="-391">
-			<name x="-85" y="-391">ROM_ext_running</name>
+		<location id="id44" x="-59" y="-391">
+			<name x="-42" y="-391">ROM_ext_running</name>
 		</location>
-		<location id="id45" x="-102" y="-289">
+		<location id="id45" x="-59" y="-289">
 		</location>
 		<location id="id46" x="-595" y="-289">
 		</location>
@@ -1010,12 +1016,12 @@ setReadIndices()</label>
 		<transition>
 			<source ref="id45"/>
 			<target ref="id44"/>
-			<label kind="synchronisation" x="-93" y="-348">RomExtStart[currentManifest.entryPoint]!</label>
+			<label kind="synchronisation" x="-51" y="-348">RomExtStart[currentManifest.entryPoint]!</label>
 		</transition>
 		<transition>
 			<source ref="id46"/>
 			<target ref="id45"/>
-			<label kind="synchronisation" x="-578" y="-314">TryExecuteMemory[currentManifest.entryPoint][currentManifest.entryPoint]!</label>
+			<label kind="synchronisation" x="-578" y="-314">TryExecuteMemory[currentManifest.entryPoint][currentManifest.entryPoint + 4]!</label>
 		</transition>
 		<transition>
 			<source ref="id47"/>
@@ -1028,14 +1034,14 @@ ClearGlobalManifest()</label>
 	<template>
 		<name>CheckPubKeyValid</name>
 		<declaration>pub_key_t publicKey;
-int[0,1] pubKeyIdList[NumberOfKeysInWhitelist];
+int[0,NumberOfKeysInWhitelist] pubKeyIdList[NumberOfKeysInWhitelist];
 int[0,1] currentPubKeyId;
 
 bool checkPublicKey(){
     int i;
 
     for(i = 0; i &lt; NumberOfKeysInWhitelist; i++)    
-        if (pubKeyIdList[i] == currentPubKeyId) //Might want to change so that it doesn't just work all the time if the array contains both a 1 and a 0
+        if (pubKeyIdList[i] == currentPubKeyId)
                 return true;
     return false;
 }
@@ -1557,6 +1563,7 @@ endIndex = e</label>
 		<name>ExceptionHandler</name>
 		<location id="id75" x="-102" y="-102">
 			<name x="-85" y="-136">Exception_Raised</name>
+			<committed/>
 		</location>
 		<location id="id76" x="-238" y="-102">
 		</location>
