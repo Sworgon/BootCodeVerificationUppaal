@@ -427,7 +427,7 @@ bool existsInSRAM(int startIndex, int endIndex){
 		<location id="id7" x="-170" y="0">
 			<committed/>
 		</location>
-		<location id="id8" x="161" y="93">
+		<location id="id8" x="399" y="-8">
 		</location>
 		<location id="id9" x="-68" y="-212">
 		</location>
@@ -448,8 +448,8 @@ bool existsInSRAM(int startIndex, int endIndex){
 		</transition>
 		<transition>
 			<source ref="id8"/>
-			<target ref="id5"/>
-			<label kind="synchronisation" x="25" y="17">FlashReadReturn?</label>
+			<target ref="id10"/>
+			<label kind="synchronisation" x="340" y="-119">FlashReadReturn?</label>
 		</transition>
 		<transition>
 			<source ref="id5"/>
@@ -2100,7 +2100,7 @@ GlobalSecretKey = 0</label>
 	<system>system SystemReset, ROMStage, Flash, rom_ext_manifests_to_try, CheckPubKeyValid, ValidityCheckObserver, 
        RSAModule, RomExt, PmpModule, Zeno, final_jump_to_rom_ext, ReadBootPolicy, CheckRomExtManifest, 
        ExceptionHandler, ReadPublicKey, LifeCycleController, HMAC, KeyManager, KMAC, FlashController,
-       SRAMController;
+       SRAMController, SRAM;
     </system>
 	<queries>
 		<query>
@@ -2170,6 +2170,22 @@ GlobalSecretKey = 0</label>
 		<query>
 			<formula>A[] FlashController.Idle imply !GlobalMemoryIsScrambled</formula>
 			<comment></comment>
+		</query>
+		<query>
+			<formula>A[]
+(ExceptionHandler.Exception_Raised imply SRAMController.scrambled) &amp;&amp;
+(final_jump_to_rom_ext.ROM_ext_running imply (ROMStage.currentManifest.publicKey.exponent == 1 &amp;&amp; ROMStage.currentManifest.publicKey.modulus == 1 &amp;&amp; ROMStage.currentManifest.signature == 1 &amp;&amp; ROMStage.currentManifest.identifier == 1)) &amp;&amp;
+(ROMStage.SignatureCheck imply (ROMStage.currentManifest.publicKey.exponent == 1 &amp;&amp; ROMStage.currentManifest.publicKey.modulus == 1 &amp;&amp; ROMStage.currentManifest.identifier == 1)) &amp;&amp;
+(final_jump_to_rom_ext.ROM_ext_running imply GlobalMemoryIsScrambled == false) &amp;&amp;
+(ROMStage.CheckedSignature imply (ROMStage.currentManifest.identifier == 1 &amp;&amp; ROMStage.currentManifest.publicKey.modulus == 1 &amp;&amp; ROMStage.currentManifest.publicKey.exponent == 1 &amp;&amp; ROMStage.currentManifest.signature == 1)) &amp;&amp;
+(ROMStage.CheckingSignature imply (ROMStage.currentManifest.identifier == 1 &amp;&amp; ROMStage.currentManifest.publicKey.modulus == 1 &amp;&amp; ROMStage.currentManifest.publicKey.exponent == 1)) &amp;&amp;
+(ROMStage.IdentifierChecked imply ROMStage.currentManifest.identifier == 1) &amp;&amp;
+(FlashController.Idle imply !GlobalMemoryIsScrambled) </formula>
+			<comment>Last 8 A[] queries</comment>
+		</query>
+		<query>
+			<formula>A[] (ROMStage.ReadyToRunROMExt imply (PmpRegions[0].execute &amp;&amp; PmpRegions[0].startAddress &lt;= ROMStage.currentManifest.entryPoint &amp;&amp; PmpRegions[0].endAddress &gt;= ROMStage.currentManifest.entryPoint)) &amp;&amp; (ROMStage.ReadyToRunROMExt imply (ROMStage.currentManifest.signature == 1 &amp;&amp; ROMStage.currentManifest.image_code == 1)) &amp;&amp; (ROMStage.ReadyToRunROMExt imply ROMStage.currentManifest.identifier == 1)</formula>
+			<comment>First 3 A[] queries not known to be false</comment>
 		</query>
 	</queries>
 </nta>
