@@ -150,7 +150,7 @@ chan CheckSRAM[MemoryMaxIndex][MemoryMaxIndex],
      NotInSRAM;
 chan ReadSRAM[MemoryMaxIndex][MemoryMaxIndex],
      ReadSRAMReturn;
-chan WriteSRAM[MemoryMaxIndex][MemoryMaxIndex],
+chan WriteSRAM,
      WriteSRAMReturn;
     
 
@@ -162,7 +162,14 @@ chan RequestScrambleKey,
 chan ReadMemory[MemoryMaxIndex][MemoryMaxIndex],
      ReadMemoryReturn;
 
-chan WriteMemory;
+chan WriteMemory,
+     WriteMemoryReturn;
+
+chan SignalSRAM,
+     SignalSRAMReturn;
+
+
+
 void clearGlobalMemory(){
     int i;
     //for(i = 0; i &lt; MemoryMaxIndex; i++)
@@ -445,28 +452,30 @@ bool existsInSRAM(int startIndex, int endIndex){
 		</location>
 		<location id="id10" x="34" y="-212">
 		</location>
+		<location id="id11" x="221" y="76">
+		</location>
 		<init ref="id6"/>
 		<transition>
 			<source ref="id5"/>
+			<target ref="id11"/>
+			<label kind="synchronisation" x="204" y="136">WriteSRAM!</label>
+		</transition>
+		<transition>
+			<source ref="id11"/>
 			<target ref="id6"/>
-			<label kind="synchronisation" x="212" y="110">WriteSRAMReturn!</label>
-			<nail x="221" y="76"/>
-			<nail x="153" y="34"/>
+			<label kind="synchronisation" x="85" y="17">SignalSRAMReturn!</label>
 		</transition>
 		<transition>
 			<source ref="id6"/>
 			<target ref="id5"/>
-			<label kind="select" x="-51" y="187">s : int[0,MemoryMaxIndex - 1],
-e : int[0,MemoryMaxIndex - 1]</label>
-			<label kind="synchronisation" x="-51" y="221">WriteSRAM[s][e]?</label>
-			<label kind="assignment" x="-51" y="238">updateSRAM(s, e)</label>
+			<label kind="synchronisation" x="34" y="161">SignalSRAM?</label>
 		</transition>
 		<transition>
 			<source ref="id10"/>
 			<target ref="id6"/>
 			<label kind="synchronisation" x="42" y="-170">CheckSRAMReturn!</label>
-			<nail x="34" y="-127"/>
-			<nail x="-34" y="-76"/>
+			<nail x="34" y="-136"/>
+			<nail x="-34" y="-68"/>
 		</transition>
 		<transition>
 			<source ref="id9"/>
@@ -510,7 +519,7 @@ e : int[0,MemoryMaxIndex - 1]</label>
 			<label kind="select" x="-272" y="-195">s : int[0,MemoryMaxIndex - 1],
 e : int[0,MemoryMaxIndex - 1]</label>
 			<label kind="guard" x="-204" y="-161">existsInSRAM(s,e)</label>
-			<label kind="synchronisation" x="-196" y="-144">CheckSRAM[s][e]?</label>
+			<label kind="synchronisation" x="-204" y="-144">CheckSRAM[s][e]?</label>
 			<label kind="assignment" x="-256" y="-127">startIndex = s, endIndex = e</label>
 			<nail x="-68" y="-68"/>
 		</transition>
@@ -527,52 +536,66 @@ e : int[0,MemoryMaxIndex - 1]</label>
 		<name>MemoryHandling</name>
 		<declaration>int s = -1;
 int e = -1;</declaration>
-		<location id="id11" x="-11841" y="-12052">
+		<location id="id12" x="-12758" y="-12240">
 		</location>
-		<location id="id12" x="-11840" y="-12163">
+		<location id="id13" x="-12020" y="-11950">
 		</location>
-		<location id="id13" x="-12002" y="-12256">
+		<location id="id14" x="-11840" y="-12163">
 		</location>
-		<location id="id14" x="-12002" y="-12375">
+		<location id="id15" x="-12002" y="-12256">
 		</location>
-		<location id="id15" x="-12172" y="-12315">
+		<location id="id16" x="-12002" y="-12375">
 		</location>
-		<location id="id16" x="-12316" y="-12316">
+		<location id="id17" x="-12172" y="-12315">
 		</location>
-		<location id="id17" x="-12580" y="-12316">
+		<location id="id18" x="-12316" y="-12316">
 		</location>
-		<location id="id18" x="-12044" y="-12053">
+		<location id="id19" x="-12580" y="-12316">
 		</location>
-		<location id="id19" x="-12223" y="-12053">
+		<location id="id20" x="-12223" y="-11951">
 		</location>
-		<location id="id20" x="-12750" y="-12316">
+		<location id="id21" x="-12223" y="-12053">
 		</location>
-		<location id="id21" x="-12877" y="-12316">
+		<location id="id22" x="-12750" y="-12316">
 		</location>
-		<init ref="id17"/>
+		<location id="id23" x="-12877" y="-12316">
+		</location>
+		<init ref="id19"/>
 		<transition>
-			<source ref="id20"/>
-			<target ref="id21"/>
-			<label kind="synchronisation" x="-12852" y="-12350">WriteSRAM!</label>
-		</transition>
-		<transition>
-			<source ref="id17"/>
-			<target ref="id20"/>
-			<label kind="synchronisation" x="-12716" y="-12342">WriteMemory?</label>
-		</transition>
-		<transition>
-			<source ref="id18"/>
+			<source ref="id12"/>
 			<target ref="id19"/>
-			<label kind="synchronisation" x="-12189" y="-12078">WriteSRAMReturn?</label>
+			<label kind="synchronisation" x="-12733" y="-12231">WriteMemoryReturn!</label>
+			<nail x="-12622" y="-12240"/>
 		</transition>
 		<transition>
-			<source ref="id11"/>
-			<target ref="id18"/>
-			<label kind="synchronisation" x="-11993" y="-12078">WriteSRAM[s][e]!</label>
+			<source ref="id23"/>
+			<target ref="id12"/>
+			<label kind="synchronisation" x="-12903" y="-12240">SignalSRAMReturn?</label>
+			<nail x="-12877" y="-12240"/>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id23"/>
+			<label kind="synchronisation" x="-12852" y="-12350">SignalSRAM!</label>
 		</transition>
 		<transition>
 			<source ref="id19"/>
-			<target ref="id17"/>
+			<target ref="id22"/>
+			<label kind="synchronisation" x="-12716" y="-12342">WriteMemory?</label>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id21"/>
+			<label kind="synchronisation" x="-12214" y="-12010">SignalSRAMReturn?</label>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id20"/>
+			<label kind="synchronisation" x="-12172" y="-11942">SignalSRAM!</label>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id19"/>
 			<label kind="synchronisation" x="-12418" y="-12078">ReadMemoryReturn!</label>
 			<label kind="assignment" x="-12418" y="-12053">s = -1,
 e = -1</label>
@@ -580,8 +603,8 @@ e = -1</label>
 			<nail x="-12580" y="-12257"/>
 		</transition>
 		<transition>
-			<source ref="id14"/>
-			<target ref="id17"/>
+			<source ref="id16"/>
+			<target ref="id19"/>
 			<label kind="synchronisation" x="-12342" y="-12503">ReadMemoryReturn!</label>
 			<label kind="assignment" x="-12342" y="-12478">s = -1,
 e = -1</label>
@@ -590,36 +613,37 @@ e = -1</label>
 			<nail x="-12580" y="-12376"/>
 		</transition>
 		<transition>
-			<source ref="id12"/>
-			<target ref="id11"/>
-			<label kind="synchronisation" x="-11832" y="-12120">FlashReadReturn?</label>
-		</transition>
-		<transition>
-			<source ref="id13"/>
-			<target ref="id12"/>
-			<label kind="synchronisation" x="-11976" y="-12188">FlashRead[s][e]!</label>
-			<nail x="-12002" y="-12163"/>
-		</transition>
-		<transition>
-			<source ref="id15"/>
-			<target ref="id13"/>
-			<label kind="synchronisation" x="-12146" y="-12282">NotInSRAM?</label>
-			<nail x="-12172" y="-12256"/>
+			<source ref="id14"/>
+			<target ref="id21"/>
+			<label kind="synchronisation" x="-11985" y="-12087">FlashReadReturn?</label>
+			<nail x="-11840" y="-12061"/>
 		</transition>
 		<transition>
 			<source ref="id15"/>
 			<target ref="id14"/>
-			<label kind="synchronisation" x="-12172" y="-12400">CheckSRAMReturn?</label>
-			<nail x="-12172" y="-12375"/>
+			<label kind="synchronisation" x="-11976" y="-12188">FlashRead[s][e]!</label>
+			<nail x="-12002" y="-12163"/>
 		</transition>
 		<transition>
-			<source ref="id16"/>
+			<source ref="id17"/>
 			<target ref="id15"/>
-			<label kind="synchronisation" x="-12299" y="-12342">CheckSRAM[s][e]!</label>
+			<label kind="synchronisation" x="-12146" y="-12282">NotInSRAM?</label>
+			<nail x="-12172" y="-12256"/>
 		</transition>
 		<transition>
 			<source ref="id17"/>
 			<target ref="id16"/>
+			<label kind="synchronisation" x="-12172" y="-12400">CheckSRAMReturn?</label>
+			<nail x="-12172" y="-12375"/>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id17"/>
+			<label kind="synchronisation" x="-12299" y="-12342">CheckSRAM[s][e]!</label>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id18"/>
 			<label kind="select" x="-12563" y="-12376">startIndex: int[0, MemoryMaxIndex - 1],
 endIndex: int[0, MemoryMaxIndex - 1]</label>
 			<label kind="synchronisation" x="-12563" y="-12342">ReadMemory[startIndex][endIndex]?</label>
@@ -633,54 +657,39 @@ e = endIndex</label>
 rom_exts_manifests_t manifests;
 int[0, NumberOfKeysInWhitelist] pubKeyWhitelist[NumberOfKeysInWhitelist];
 int SRAM[SRAMsize];
+int[0, SRAMsize - 1] SRAMIndex = 0;
 
 //Is not called atm 16-04-2021
 void readSRAM(int startIndex, int endIndex){
-    if(startIndex &gt;= 0 &amp;&amp; endIndex &lt;= 19){
-        //Something from ROM
-        if (startIndex == 13 &amp;&amp; endIndex == 13){ // public key id whitelist used for public key verification.
-            GlobalPublicKeyIdWhitelist = pubKeyWhitelist; //Should be changed to an actual transference of an array from flash into the global array
-            GlobalMemoryIsScrambled = true;
-        }
-    }
-    if(startIndex &gt;= 20 &amp;&amp; endIndex &lt;= 29){
-        //Something from Flash Info
-    }
-    if(startIndex &gt;= 30 &amp;&amp; endIndex &lt;= 64){
-        //Something from Flash Bank 0
-        if(startIndex == 30 &amp;&amp; endIndex == 41){
-            GlobalManifest = manifests.rom_exts_mfs[0];
-            GlobalMemoryIsScrambled = true;
-        }
+    if (startIndex &gt;= 0 &amp;&amp; startIndex &lt;= SRAMsize - 1)
+        GlobalSecretKey = SRAM[startIndex];
+}
 
-    }
-    if(startIndex &gt;= 65 &amp;&amp; endIndex &lt;= 99){
-        //Something from Flash Bank 1
-        if(startIndex == 65 &amp;&amp; endIndex == 76){
-            GlobalManifest = manifests.rom_exts_mfs[1];
-        }
-    }
-    else{
-        if (startIndex == 100){
-            GlobalManifest = manifests.rom_exts_mfs[2];
-        }
-        else if (startIndex == 135){
-            GlobalManifest = manifests.rom_exts_mfs[3];
-        }
-        //You fucked up
-    }
+void writeSRAM(){
+    SRAM[SRAMIndex] = GlobalSecretKey;
+    GlobalSecretKey = 0;
+    SRAMIndex = (SRAMIndex + 1) % SRAMsize;
 }</declaration>
-		<location id="id22" x="-1657" y="-1496">
+		<location id="id24" x="-1683" y="-1513">
 		</location>
-		<init ref="id22"/>
+		<init ref="id24"/>
 		<transition>
-			<source ref="id22"/>
-			<target ref="id22"/>
-			<label kind="select" x="-1674" y="-1598">s: int[0, MemoryMaxIndex-1],
+			<source ref="id24"/>
+			<target ref="id24"/>
+			<label kind="synchronisation" x="-1904" y="-1538">WriteSRAM?</label>
+			<label kind="assignment" x="-1904" y="-1521">writeSRAM()</label>
+			<nail x="-1802" y="-1564"/>
+			<nail x="-1802" y="-1462"/>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id24"/>
+			<label kind="select" x="-1530" y="-1538">s: int[0, MemoryMaxIndex-1],
 e: int[0, MemoryMaxIndex-1]</label>
-			<label kind="synchronisation" x="-1674" y="-1564">ReadSRAM[s][e]?</label>
-			<nail x="-1538" y="-1547"/>
-			<nail x="-1538" y="-1454"/>
+			<label kind="synchronisation" x="-1530" y="-1504">ReadSRAM[s][e]?</label>
+			<label kind="assignment" x="-1530" y="-1487">readSRAM(s,e)</label>
+			<nail x="-1564" y="-1564"/>
+			<nail x="-1564" y="-1462"/>
 		</transition>
 	</template>
 	<template>
@@ -715,55 +724,55 @@ void clearManifest(){
     currentManifest.signature = 0;
 }
 </declaration>
-		<location id="id23" x="-85" y="17">
+		<location id="id25" x="-85" y="17">
 			<name x="-76" y="-8">CheckingKey</name>
 		</location>
-		<location id="id24" x="238" y="-561">
+		<location id="id26" x="238" y="-561">
 			<name x="255" y="-578">Rom_Ext_terminated</name>
 		</location>
-		<location id="id25" x="238" y="-476">
+		<location id="id27" x="238" y="-476">
 		</location>
-		<location id="id26" x="238" y="-255">
+		<location id="id28" x="238" y="-255">
 			<name x="246" y="-272">CheckedSignature</name>
 		</location>
-		<location id="id27" x="238" y="-187">
+		<location id="id29" x="238" y="-187">
 			<name x="263" y="-195">CheckingSignature</name>
 		</location>
-		<location id="id28" x="-85" y="-357">
+		<location id="id30" x="-85" y="-357">
 		</location>
-		<location id="id29" x="-85" y="-561">
+		<location id="id31" x="-85" y="-561">
 			<name x="-68" y="-578">Boot_Failed</name>
 		</location>
-		<location id="id30" x="-85" y="-459">
+		<location id="id32" x="-85" y="-459">
 			<name x="-68" y="-484">StartOfLoop</name>
 		</location>
-		<location id="id31" x="-459" y="-629">
+		<location id="id33" x="-459" y="-629">
 		</location>
-		<location id="id32" x="-85" y="-629">
+		<location id="id34" x="-85" y="-629">
 		</location>
-		<location id="id33" x="238" y="-629">
+		<location id="id35" x="238" y="-629">
 		</location>
-		<location id="id34" x="-459" y="-552">
+		<location id="id36" x="-459" y="-552">
 		</location>
-		<location id="id35" x="-459" y="-459">
+		<location id="id37" x="-459" y="-459">
 		</location>
-		<location id="id36" x="-85" y="-272">
+		<location id="id38" x="-85" y="-272">
 			<name x="-68" y="-297">IdentifierChecked</name>
 		</location>
-		<location id="id37" x="76" y="-187">
+		<location id="id39" x="76" y="-187">
 			<name x="85" y="-212">SignatureCheck</name>
 		</location>
-		<location id="id38" x="238" y="-357">
+		<location id="id40" x="238" y="-357">
 			<name x="255" y="-374">ReadyToRunROMExt</name>
 		</location>
-		<location id="id39" x="-85" y="-187">
+		<location id="id41" x="-85" y="-187">
 		</location>
-		<location id="id40" x="-85" y="-85">
+		<location id="id42" x="-85" y="-85">
 		</location>
-		<init ref="id33"/>
+		<init ref="id35"/>
 		<transition>
-			<source ref="id23"/>
-			<target ref="id30"/>
+			<source ref="id25"/>
+			<target ref="id32"/>
 			<label kind="synchronisation" x="-476" y="-25">PubKeyNotValidBC?</label>
 			<label kind="assignment" x="-476" y="-8">loopIndex++</label>
 			<nail x="-493" y="17"/>
@@ -773,86 +782,86 @@ void clearManifest(){
 			<nail x="-110" y="-442"/>
 		</transition>
 		<transition>
-			<source ref="id23"/>
-			<target ref="id37"/>
+			<source ref="id25"/>
+			<target ref="id39"/>
 			<label kind="synchronisation" x="93" y="-8">PubKeyValidBC?</label>
 			<nail x="76" y="17"/>
 		</transition>
 		<transition>
-			<source ref="id40"/>
-			<target ref="id23"/>
+			<source ref="id42"/>
+			<target ref="id25"/>
 			<label kind="synchronisation" x="-272" y="-59">CheckPublicKeyValidCallBC!</label>
 			<label kind="assignment" x="-238" y="-42">GlobalPublicKey = key</label>
 		</transition>
 		<transition>
-			<source ref="id39"/>
-			<target ref="id40"/>
+			<source ref="id41"/>
+			<target ref="id42"/>
 			<label kind="synchronisation" x="-246" y="-161">ReadPublicKeyReturn?</label>
 			<label kind="assignment" x="-246" y="-144">key = GlobalPublicKey,
 ClearGlobalPublicKey()</label>
 		</transition>
 		<transition>
-			<source ref="id36"/>
-			<target ref="id39"/>
+			<source ref="id38"/>
+			<target ref="id41"/>
 			<label kind="synchronisation" x="-221" y="-246">ReadPublicKeyCall!</label>
 			<label kind="assignment" x="-306" y="-229">GlobalManifest = currentManifest</label>
 			<nail x="-85" y="-212"/>
 		</transition>
 		<transition>
-			<source ref="id28"/>
-			<target ref="id30"/>
+			<source ref="id30"/>
+			<target ref="id32"/>
 			<label kind="synchronisation" x="-59" y="-425">CheckRomExtManifestNotValid?</label>
 			<label kind="assignment" x="-59" y="-408">loopIndex++</label>
 			<nail x="-68" y="-408"/>
 		</transition>
 		<transition>
-			<source ref="id28"/>
-			<target ref="id36"/>
+			<source ref="id30"/>
+			<target ref="id38"/>
 			<label kind="synchronisation" x="-76" y="-323">CheckRomExtManifestValid?</label>
 		</transition>
 		<transition>
-			<source ref="id25"/>
-			<target ref="id24"/>
+			<source ref="id27"/>
+			<target ref="id26"/>
 			<label kind="synchronisation" x="246" y="-527">FinalJumpReturn?</label>
 		</transition>
 		<transition>
-			<source ref="id38"/>
-			<target ref="id25"/>
+			<source ref="id40"/>
+			<target ref="id27"/>
 			<label kind="synchronisation" x="255" y="-433">FinalJumpCall!</label>
 			<label kind="assignment" x="255" y="-416">GlobalManifest = currentManifest</label>
 		</transition>
 		<transition>
-			<source ref="id37"/>
-			<target ref="id27"/>
+			<source ref="id39"/>
+			<target ref="id29"/>
 			<label kind="synchronisation" x="102" y="-170">CheckSignatureBC!</label>
 			<label kind="assignment" x="102" y="-153">GlobalSignature = currentManifest.signature,
 GlobalImageCode = currentManifest.image_code</label>
 		</transition>
 		<transition>
-			<source ref="id35"/>
-			<target ref="id30"/>
+			<source ref="id37"/>
+			<target ref="id32"/>
 			<label kind="synchronisation" x="-399" y="-527">REMTTReturn?</label>
 			<label kind="assignment" x="-399" y="-510">romExtsManifests = GlobalRomExtsManifests,
 clearGlobalRomExtsManifests()</label>
 		</transition>
 		<transition>
-			<source ref="id34"/>
-			<target ref="id35"/>
+			<source ref="id36"/>
+			<target ref="id37"/>
 			<label kind="synchronisation" x="-544" y="-510">REMTTCall!</label>
 		</transition>
 		<transition>
-			<source ref="id26"/>
-			<target ref="id38"/>
+			<source ref="id28"/>
+			<target ref="id40"/>
 			<label kind="assignment" x="255" y="-314">pmpUnlockRomExt()</label>
 		</transition>
 		<transition>
-			<source ref="id27"/>
-			<target ref="id26"/>
-			<label kind="synchronisation" x="255" y="-229">SignatureValidBC?</label>
+			<source ref="id29"/>
+			<target ref="id28"/>
+			<label kind="synchronisation" x="255" y="-238">SignatureValidBC?</label>
 		</transition>
 		<transition>
-			<source ref="id27"/>
-			<target ref="id30"/>
+			<source ref="id29"/>
+			<target ref="id32"/>
 			<label kind="synchronisation" x="51" y="-255">SignatureNotValidBC?</label>
 			<label kind="assignment" x="110" y="-272">loopIndex++</label>
 			<nail x="221" y="-204"/>
@@ -872,8 +881,8 @@ clearGlobalRomExtsManifests()</label>
 			<nail x="204" y="-459"/>
 		</transition>
 		<transition>
-			<source ref="id30"/>
-			<target ref="id28"/>
+			<source ref="id32"/>
+			<target ref="id30"/>
 			<label kind="guard" x="-323" y="-425">loopIndex &lt; NumberOfFlashBanks</label>
 			<label kind="synchronisation" x="-272" y="-408">CheckRomExtManifestCall!</label>
 			<label kind="assignment" x="-484" y="-391">currentManifest = romExtsManifests.rom_exts_mfs[loopIndex],
@@ -881,45 +890,45 @@ GlobalManifest = currentManifest</label>
 			<nail x="-102" y="-408"/>
 		</transition>
 		<transition>
-			<source ref="id30"/>
-			<target ref="id29"/>
+			<source ref="id32"/>
+			<target ref="id31"/>
 			<label kind="guard" x="-76" y="-518">loopIndex &gt;= NumberOfFlashBanks</label>
 		</transition>
 		<transition>
-			<source ref="id31"/>
-			<target ref="id34"/>
+			<source ref="id33"/>
+			<target ref="id36"/>
 			<label kind="synchronisation" x="-442" y="-603">ReadBootPolicyReturn?</label>
 			<label kind="assignment" x="-442" y="-586">bootPolicy = GlobalBootPolicy</label>
 		</transition>
 		<transition>
-			<source ref="id32"/>
-			<target ref="id31"/>
+			<source ref="id34"/>
+			<target ref="id33"/>
 			<label kind="synchronisation" x="-357" y="-654">ReadBootPolicyCall!</label>
 		</transition>
 		<transition>
-			<source ref="id33"/>
-			<target ref="id32"/>
+			<source ref="id35"/>
+			<target ref="id34"/>
 			<label kind="synchronisation" x="42" y="-654">StartRomStage?</label>
 		</transition>
 	</template>
 	<template>
 		<name>ReadPublicKey</name>
 		<declaration>rom_ext_manifest_t manifest;</declaration>
-		<location id="id41" x="-688" y="-391">
+		<location id="id43" x="-688" y="-391">
 		</location>
-		<location id="id42" x="-212" y="-391">
+		<location id="id44" x="-212" y="-391">
 		</location>
-		<init ref="id41"/>
+		<init ref="id43"/>
 		<transition>
-			<source ref="id42"/>
-			<target ref="id41"/>
+			<source ref="id44"/>
+			<target ref="id43"/>
 			<label kind="synchronisation" x="-518" y="-297">ReadPublicKeyReturn!</label>
 			<nail x="-212" y="-272"/>
 			<nail x="-688" y="-272"/>
 		</transition>
 		<transition>
-			<source ref="id41"/>
-			<target ref="id42"/>
+			<source ref="id43"/>
+			<target ref="id44"/>
 			<label kind="synchronisation" x="-646" y="-450">ReadPublicKeyCall?</label>
 			<label kind="assignment" x="-646" y="-433">GlobalPublicKey = GlobalManifest.publicKey,
 ClearGlobalManifest()</label>
@@ -940,32 +949,32 @@ void clearManifest(){
     manifest.image_code = 0;
     manifest.entryPoint = 0;
 }</declaration>
-		<location id="id43" x="-51" y="-51">
+		<location id="id45" x="-51" y="-51">
 			<name x="-34" y="-68">Called</name>
 		</location>
-		<location id="id44" x="-289" y="-51">
+		<location id="id46" x="-289" y="-51">
 			<name x="-331" y="-68">Idle</name>
 		</location>
-		<init ref="id44"/>
+		<init ref="id46"/>
 		<transition>
-			<source ref="id43"/>
-			<target ref="id44"/>
+			<source ref="id45"/>
+			<target ref="id46"/>
 			<label kind="guard" x="-289" y="0">!checkRomExtManifest()</label>
 			<label kind="synchronisation" x="-289" y="17">CheckRomExtManifestNotValid!</label>
 			<nail x="-51" y="0"/>
 			<nail x="-289" y="0"/>
 		</transition>
 		<transition>
-			<source ref="id43"/>
-			<target ref="id44"/>
+			<source ref="id45"/>
+			<target ref="id46"/>
 			<label kind="guard" x="-280" y="-136">checkRomExtManifest()</label>
 			<label kind="synchronisation" x="-280" y="-119">CheckRomExtManifestValid!</label>
 			<nail x="-51" y="-102"/>
 			<nail x="-289" y="-102"/>
 		</transition>
 		<transition>
-			<source ref="id44"/>
-			<target ref="id43"/>
+			<source ref="id46"/>
+			<target ref="id45"/>
 			<label kind="synchronisation" x="-271" y="-68">CheckRomExtManifestCall?</label>
 			<label kind="assignment" x="-271" y="-51">manifest = GlobalManifest,
 ClearGlobalManifest()</label>
@@ -987,65 +996,65 @@ ClearGlobalManifest()</label>
     //GlobalBootPolicy.fail_function_address = GlobalMemory[1];
     //GlobalBootPolicy.rom_ext_failure_function_address = GlobalMemory[2];
 }</declaration>
-		<location id="id45" x="-178" y="0">
+		<location id="id47" x="-178" y="0">
 			<name x="-161" y="-8">Reading</name>
 		</location>
-		<location id="id46" x="-374" y="-153">
+		<location id="id48" x="-374" y="-153">
 			<name x="-391" y="-196">Called</name>
 		</location>
-		<location id="id47" x="-374" y="0">
+		<location id="id49" x="-374" y="0">
 			<name x="-416" y="-8">Idle</name>
 		</location>
-		<location id="id48" x="-178" y="-153">
+		<location id="id50" x="-178" y="-153">
 		</location>
-		<init ref="id47"/>
+		<init ref="id49"/>
 		<transition>
-			<source ref="id48"/>
-			<target ref="id45"/>
+			<source ref="id50"/>
+			<target ref="id47"/>
 			<label kind="synchronisation" x="-170" y="-93">ReadMemoryReturn?</label>
 		</transition>
 		<transition>
-			<source ref="id45"/>
-			<target ref="id47"/>
+			<source ref="id47"/>
+			<target ref="id49"/>
 			<label kind="synchronisation" x="-340" y="17">ReadBootPolicyReturn!</label>
 			<label kind="assignment" x="-340" y="0">readBootPolicy()</label>
 		</transition>
 		<transition>
-			<source ref="id46"/>
-			<target ref="id48"/>
+			<source ref="id48"/>
+			<target ref="id50"/>
 			<label kind="synchronisation" x="-348" y="-178">ReadMemory[21][29]!</label>
 		</transition>
 		<transition>
-			<source ref="id47"/>
-			<target ref="id46"/>
+			<source ref="id49"/>
+			<target ref="id48"/>
 			<label kind="synchronisation" x="-510" y="-85">ReadBootPolicyCall?</label>
 		</transition>
 	</template>
 	<template>
 		<name>Zeno</name>
-		<location id="id49" x="-17" y="-17">
+		<location id="id51" x="-17" y="-17">
 			<urgent/>
 		</location>
-		<init ref="id49"/>
+		<init ref="id51"/>
 	</template>
 	<template>
 		<name>RomExt</name>
 		<parameter>const int[0, NumberOfFlashBanks - 1] id</parameter>
-		<location id="id50" x="-153" y="-289">
+		<location id="id52" x="-153" y="-289">
 		</location>
-		<location id="id51" x="-153" y="-153">
+		<location id="id53" x="-153" y="-153">
 		</location>
-		<location id="id52" x="-357" y="-153">
+		<location id="id54" x="-357" y="-153">
 		</location>
-		<init ref="id52"/>
+		<init ref="id54"/>
 		<transition>
-			<source ref="id51"/>
-			<target ref="id50"/>
+			<source ref="id53"/>
+			<target ref="id52"/>
 			<label kind="synchronisation" x="-153" y="-238">AdvanceKMState!</label>
 		</transition>
 		<transition>
-			<source ref="id52"/>
-			<target ref="id51"/>
+			<source ref="id54"/>
+			<target ref="id53"/>
 			<label kind="synchronisation" x="-339" y="-170">RomExtStart[38 + 35 * id]?</label>
 		</transition>
 	</template>
@@ -1100,16 +1109,16 @@ void returnManifests(){
     int image_code[10];
 */
 </declaration>
-		<location id="id53" x="799" y="-221">
+		<location id="id55" x="799" y="-221">
 			<name x="789" y="-255">GeneratingManifest</name>
 		</location>
-		<location id="id54" x="629" y="-221">
+		<location id="id56" x="629" y="-221">
 			<name x="586" y="-229">Idle</name>
 		</location>
-		<init ref="id54"/>
+		<init ref="id56"/>
 		<transition>
-			<source ref="id53"/>
-			<target ref="id54"/>
+			<source ref="id55"/>
+			<target ref="id56"/>
 			<label kind="select" x="731" y="-170">i : int[1,2],
 j : int[0,1],
 k : int[0,1],
@@ -1123,8 +1132,8 @@ returnManifests()</label>
 			<nail x="714" y="-170"/>
 		</transition>
 		<transition>
-			<source ref="id54"/>
-			<target ref="id53"/>
+			<source ref="id56"/>
+			<target ref="id55"/>
 			<label kind="select" x="620" y="-382">i : int[0,2]</label>
 			<label kind="synchronisation" x="620" y="-365">REMTTCall?</label>
 			<label kind="assignment" x="620" y="-348">bootPolicy = GlobalBootPolicy,
@@ -1185,18 +1194,18 @@ void returnManifests(){
     int image_code[10];
 */
 </declaration>
-		<location id="id55" x="731" y="-331">
+		<location id="id57" x="731" y="-331">
 		</location>
-		<location id="id56" x="612" y="-289">
+		<location id="id58" x="612" y="-289">
 		</location>
-		<location id="id57" x="510" y="-289">
+		<location id="id59" x="510" y="-289">
 		</location>
-		<location id="id58" x="731" y="-246">
+		<location id="id60" x="731" y="-246">
 		</location>
-		<init ref="id57"/>
+		<init ref="id59"/>
 		<transition>
-			<source ref="id58"/>
-			<target ref="id56"/>
+			<source ref="id60"/>
+			<target ref="id58"/>
 			<label kind="assignment" x="612" y="-229">makeManifest(),
 ClearGlobalManifest(),
 loopIndex++,
@@ -1204,28 +1213,28 @@ setReadIndices()</label>
 			<nail x="663" y="-238"/>
 		</transition>
 		<transition>
-			<source ref="id56"/>
-			<target ref="id57"/>
+			<source ref="id58"/>
+			<target ref="id59"/>
 			<label kind="guard" x="365" y="-238">loopIndex &gt;= NumberOfFlashBanks</label>
 			<label kind="synchronisation" x="365" y="-221">REMTTReturn!</label>
 			<label kind="assignment" x="365" y="-204">returnManifests()</label>
 			<nail x="561" y="-238"/>
 		</transition>
 		<transition>
-			<source ref="id55"/>
-			<target ref="id58"/>
+			<source ref="id57"/>
+			<target ref="id60"/>
 			<label kind="synchronisation" x="739" y="-306">CheckSRAMReturn?</label>
 		</transition>
 		<transition>
-			<source ref="id56"/>
-			<target ref="id55"/>
+			<source ref="id58"/>
+			<target ref="id57"/>
 			<label kind="guard" x="620" y="-365">loopIndex &lt; NumberOfFlashBanks</label>
 			<label kind="synchronisation" x="620" y="-382">CheckSRAM[startReadIndex][endReadIndex]!</label>
 			<nail x="663" y="-340"/>
 		</transition>
 		<transition>
-			<source ref="id57"/>
-			<target ref="id56"/>
+			<source ref="id59"/>
+			<target ref="id58"/>
 			<label kind="synchronisation" x="399" y="-399">REMTTCall?</label>
 			<label kind="assignment" x="399" y="-382">bootPolicy = GlobalBootPolicy,
 clearGlobalBootPolicy(),
@@ -1236,43 +1245,43 @@ setReadIndices()</label>
 	<template>
 		<name>final_jump_to_rom_ext</name>
 		<declaration>rom_ext_manifest_t currentManifest;</declaration>
-		<location id="id59" x="-408" y="-391">
+		<location id="id61" x="-408" y="-391">
 		</location>
-		<location id="id60" x="-255" y="-391">
+		<location id="id62" x="-255" y="-391">
 		</location>
-		<location id="id61" x="-59" y="-391">
+		<location id="id63" x="-59" y="-391">
 			<name x="-42" y="-391">ROM_ext_running</name>
 		</location>
-		<location id="id62" x="-59" y="-289">
+		<location id="id64" x="-59" y="-289">
 		</location>
-		<location id="id63" x="-595" y="-289">
+		<location id="id65" x="-595" y="-289">
 		</location>
-		<location id="id64" x="-850" y="-289">
+		<location id="id66" x="-850" y="-289">
 		</location>
-		<init ref="id64"/>
-		<transition>
-			<source ref="id60"/>
-			<target ref="id59"/>
-			<label kind="synchronisation" x="-382" y="-416">FinalJumpReturn!</label>
-		</transition>
-		<transition>
-			<source ref="id61"/>
-			<target ref="id60"/>
-			<label kind="synchronisation" x="-221" y="-416">Rom_Ext_Fail?</label>
-		</transition>
+		<init ref="id66"/>
 		<transition>
 			<source ref="id62"/>
 			<target ref="id61"/>
-			<label kind="synchronisation" x="-51" y="-348">RomExtStart[currentManifest.entryPoint]!</label>
+			<label kind="synchronisation" x="-382" y="-416">FinalJumpReturn!</label>
 		</transition>
 		<transition>
 			<source ref="id63"/>
 			<target ref="id62"/>
-			<label kind="synchronisation" x="-578" y="-314">TryExecuteMemory[currentManifest.entryPoint][currentManifest.entryPoint + 4]!</label>
+			<label kind="synchronisation" x="-221" y="-416">Rom_Ext_Fail?</label>
 		</transition>
 		<transition>
 			<source ref="id64"/>
 			<target ref="id63"/>
+			<label kind="synchronisation" x="-51" y="-348">RomExtStart[currentManifest.entryPoint]!</label>
+		</transition>
+		<transition>
+			<source ref="id65"/>
+			<target ref="id64"/>
+			<label kind="synchronisation" x="-578" y="-314">TryExecuteMemory[currentManifest.entryPoint][currentManifest.entryPoint + 4]!</label>
+		</transition>
+		<transition>
+			<source ref="id66"/>
+			<target ref="id65"/>
 			<label kind="synchronisation" x="-833" y="-348">FinalJumpCall?</label>
 			<label kind="assignment" x="-833" y="-331">currentManifest = GlobalManifest,
 ClearGlobalManifest()</label>
@@ -1299,47 +1308,47 @@ void calculateKeyId(){
     else
         currentPubKeyId = 0;
 }</declaration>
-		<location id="id65" x="246" y="-289">
+		<location id="id67" x="246" y="-289">
 		</location>
-		<location id="id66" x="-68" y="-289">
+		<location id="id68" x="-68" y="-289">
 		</location>
-		<location id="id67" x="-272" y="-289">
+		<location id="id69" x="-272" y="-289">
 		</location>
-		<location id="id68" x="-527" y="-289">
+		<location id="id70" x="-527" y="-289">
 		</location>
-		<init ref="id68"/>
+		<init ref="id70"/>
 		<transition>
-			<source ref="id66"/>
-			<target ref="id65"/>
+			<source ref="id68"/>
+			<target ref="id67"/>
 			<label kind="synchronisation" x="-34" y="-314">ReadMemoryReturn?</label>
 			<label kind="assignment" x="-51" y="-289">pubKeyIdList = GlobalPublicKeyIdWhitelist,
 ClearGlobalPubKeyWhitelist(),
 calculateKeyId()</label>
 		</transition>
 		<transition>
-			<source ref="id67"/>
-			<target ref="id66"/>
+			<source ref="id69"/>
+			<target ref="id68"/>
 			<label kind="synchronisation" x="-246" y="-314">ReadMemory[13][13]!</label>
 		</transition>
 		<transition>
-			<source ref="id65"/>
-			<target ref="id68"/>
+			<source ref="id67"/>
+			<target ref="id70"/>
 			<label kind="guard" x="-187" y="-382">!checkPublicKey()</label>
 			<label kind="synchronisation" x="-187" y="-365">PubKeyNotValidBC!</label>
 			<nail x="246" y="-340"/>
 			<nail x="-527" y="-340"/>
 		</transition>
 		<transition>
-			<source ref="id65"/>
-			<target ref="id68"/>
+			<source ref="id67"/>
+			<target ref="id70"/>
 			<label kind="guard" x="-170" y="-187">checkPublicKey()</label>
 			<label kind="synchronisation" x="-170" y="-170">PubKeyValidBC!</label>
 			<nail x="246" y="-204"/>
 			<nail x="-527" y="-204"/>
 		</transition>
 		<transition>
-			<source ref="id68"/>
-			<target ref="id67"/>
+			<source ref="id70"/>
+			<target ref="id69"/>
 			<label kind="synchronisation" x="-493" y="-314">CheckPublicKeyValidCallBC?</label>
 			<label kind="assignment" x="-493" y="-289">publicKey = GlobalPublicKey,
 ClearGlobalPublicKey()</label>
@@ -1361,100 +1370,100 @@ void clear(){
     signature = 0;
     image_code = 0;  
 }</declaration>
-		<location id="id69" x="-578" y="-476">
+		<location id="id71" x="-569" y="-476">
 		</location>
-		<location id="id70" x="-926" y="-476">
+		<location id="id72" x="-917" y="-476">
 		</location>
-		<location id="id71" x="-357" y="-476">
+		<location id="id73" x="-348" y="-476">
 		</location>
-		<location id="id72" x="-697" y="-476">
+		<location id="id74" x="-688" y="-476">
 		</location>
-		<init ref="id70"/>
+		<init ref="id72"/>
 		<transition>
-			<source ref="id69"/>
+			<source ref="id71"/>
+			<target ref="id73"/>
+			<label kind="synchronisation" x="-552" y="-493">HMACReturn?</label>
+			<label kind="assignment" x="-552" y="-459">GlobalImageCode = 0</label>
+		</transition>
+		<transition>
+			<source ref="id74"/>
 			<target ref="id71"/>
-			<label kind="synchronisation" x="-561" y="-493">HMACReturn?</label>
-			<label kind="assignment" x="-561" y="-459">GlobalImageCode = 0</label>
+			<label kind="synchronisation" x="-670" y="-493">HMACCalled!</label>
 		</transition>
 		<transition>
 			<source ref="id72"/>
-			<target ref="id69"/>
-			<label kind="synchronisation" x="-679" y="-493">HMACCalled!</label>
-		</transition>
-		<transition>
-			<source ref="id70"/>
-			<target ref="id72"/>
-			<label kind="synchronisation" x="-884" y="-425">CheckSignatureBC?</label>
-			<label kind="assignment" x="-884" y="-476">signature = GlobalSignature,
+			<target ref="id74"/>
+			<label kind="synchronisation" x="-875" y="-425">CheckSignatureBC?</label>
+			<label kind="assignment" x="-875" y="-476">signature = GlobalSignature,
 image_code = GlobalImageCode,
 key = GlobalPublicKey</label>
 		</transition>
 		<transition>
-			<source ref="id71"/>
-			<target ref="id70"/>
-			<label kind="guard" x="-841" y="-586">!checkSignature()</label>
-			<label kind="synchronisation" x="-841" y="-569">SignatureNotValidBC!</label>
-			<label kind="assignment" x="-841" y="-552">clear()</label>
-			<nail x="-357" y="-527"/>
-			<nail x="-926" y="-527"/>
+			<source ref="id73"/>
+			<target ref="id72"/>
+			<label kind="guard" x="-832" y="-586">!checkSignature()</label>
+			<label kind="synchronisation" x="-832" y="-569">SignatureNotValidBC!</label>
+			<label kind="assignment" x="-832" y="-552">clear()</label>
+			<nail x="-348" y="-527"/>
+			<nail x="-917" y="-527"/>
 		</transition>
 		<transition>
-			<source ref="id71"/>
-			<target ref="id70"/>
-			<label kind="guard" x="-858" y="-348">checkSignature()</label>
-			<label kind="synchronisation" x="-858" y="-331">SignatureValidBC!</label>
-			<label kind="assignment" x="-858" y="-314">clear()</label>
-			<nail x="-357" y="-348"/>
-			<nail x="-926" y="-348"/>
+			<source ref="id73"/>
+			<target ref="id72"/>
+			<label kind="guard" x="-849" y="-348">checkSignature()</label>
+			<label kind="synchronisation" x="-849" y="-331">SignatureValidBC!</label>
+			<label kind="assignment" x="-849" y="-314">clear()</label>
+			<nail x="-348" y="-348"/>
+			<nail x="-917" y="-348"/>
 		</transition>
 	</template>
 	<template>
 		<name>ValidityCheckObserver</name>
 		<declaration>//Fix guards in accordance to new key make up</declaration>
-		<location id="id73" x="391" y="-51">
+		<location id="id75" x="391" y="-51">
 			<name x="381" y="-85">Success</name>
 		</location>
-		<location id="id74" x="187" y="-51">
+		<location id="id76" x="187" y="-51">
 		</location>
-		<location id="id75" x="-51" y="-51">
+		<location id="id77" x="-51" y="-51">
 		</location>
-		<location id="id76" x="-289" y="-51">
+		<location id="id78" x="-289" y="-51">
 		</location>
-		<location id="id77" x="-51" y="51">
+		<location id="id79" x="-51" y="51">
 			<committed/>
 		</location>
-		<init ref="id76"/>
+		<init ref="id78"/>
 		<transition>
-			<source ref="id77"/>
-			<target ref="id76"/>
+			<source ref="id79"/>
+			<target ref="id78"/>
 			<nail x="-289" y="51"/>
 		</transition>
 		<transition>
-			<source ref="id74"/>
-			<target ref="id77"/>
+			<source ref="id76"/>
+			<target ref="id79"/>
 			<label kind="guard" x="-25" y="8">GlobalSignature != 33</label>
 			<label kind="synchronisation" x="-25" y="25">SignatureNotValidBC?</label>
 			<nail x="187" y="51"/>
 		</transition>
 		<transition>
-			<source ref="id75"/>
-			<target ref="id77"/>
+			<source ref="id77"/>
+			<target ref="id79"/>
 			<label kind="synchronisation" x="-229" y="0">PubKeyNotValidBC?</label>
-		</transition>
-		<transition>
-			<source ref="id74"/>
-			<target ref="id73"/>
-			<label kind="guard" x="205" y="-85">GlobalSignature == 33</label>
-			<label kind="synchronisation" x="204" y="-102">SignatureValidBC?</label>
-		</transition>
-		<transition>
-			<source ref="id75"/>
-			<target ref="id74"/>
-			<label kind="synchronisation" x="-25" y="-76">PubKeyValidBC?</label>
 		</transition>
 		<transition>
 			<source ref="id76"/>
 			<target ref="id75"/>
+			<label kind="guard" x="205" y="-85">GlobalSignature == 33</label>
+			<label kind="synchronisation" x="204" y="-102">SignatureValidBC?</label>
+		</transition>
+		<transition>
+			<source ref="id77"/>
+			<target ref="id76"/>
+			<label kind="synchronisation" x="-25" y="-76">PubKeyValidBC?</label>
+		</transition>
+		<transition>
+			<source ref="id78"/>
+			<target ref="id77"/>
 			<label kind="select" x="-263" y="-127">e : int[0,MemoryMaxIndex - 1]</label>
 			<label kind="guard" x="-263" y="-110">e != 0</label>
 			<label kind="synchronisation" x="-263" y="-93">RomExtValidBC[e]?</label>
@@ -1498,20 +1507,20 @@ bool canExecute(int startIndex, int endIndex){
                 return true;
     return false;
 }</declaration>
-		<location id="id78" x="-204" y="-340">
+		<location id="id80" x="-204" y="-340">
 		</location>
-		<location id="id79" x="-136" y="-510">
+		<location id="id81" x="-136" y="-510">
 		</location>
-		<location id="id80" x="-34" y="-340">
+		<location id="id82" x="-34" y="-340">
 			<committed/>
 		</location>
-		<location id="id81" x="-382" y="-340">
+		<location id="id83" x="-382" y="-340">
 			<committed/>
 		</location>
-		<init ref="id79"/>
+		<init ref="id81"/>
 		<transition>
-			<source ref="id81"/>
-			<target ref="id78"/>
+			<source ref="id83"/>
+			<target ref="id80"/>
 			<label kind="synchronisation" x="-493" y="-297">PmpReadMemory[start][end]!</label>
 			<label kind="assignment" x="-493" y="-280">start = 0,
 end = 0</label>
@@ -1519,8 +1528,8 @@ end = 0</label>
 			<nail x="-238" y="-306"/>
 		</transition>
 		<transition>
-			<source ref="id80"/>
-			<target ref="id78"/>
+			<source ref="id82"/>
+			<target ref="id80"/>
 			<label kind="synchronisation" x="-51" y="-297">PmpWriteMemory[start][end]!</label>
 			<label kind="assignment" x="-51" y="-280">start = 0,
 end = 0</label>
@@ -1528,8 +1537,8 @@ end = 0</label>
 			<nail x="-170" y="-306"/>
 		</transition>
 		<transition>
-			<source ref="id78"/>
-			<target ref="id78"/>
+			<source ref="id80"/>
+			<target ref="id80"/>
 			<label kind="select" x="-272" y="-238">s : int[0,MemoryMaxIndex - 1],
 e : int[0,MemoryMaxIndex - 1]</label>
 			<label kind="guard" x="-272" y="-204">canExecute(s,e)</label>
@@ -1538,8 +1547,8 @@ e : int[0,MemoryMaxIndex - 1]</label>
 			<nail x="-187" y="-272"/>
 		</transition>
 		<transition>
-			<source ref="id78"/>
-			<target ref="id80"/>
+			<source ref="id80"/>
+			<target ref="id82"/>
 			<label kind="select" x="-17" y="-450">s : int[0,MemoryMaxIndex - 1],
 e : int[0,MemoryMaxIndex - 1]</label>
 			<label kind="guard" x="-17" y="-416">canWrite(s,e)</label>
@@ -1550,8 +1559,8 @@ end = e</label>
 			<nail x="-34" y="-374"/>
 		</transition>
 		<transition>
-			<source ref="id78"/>
-			<target ref="id81"/>
+			<source ref="id80"/>
+			<target ref="id83"/>
 			<label kind="select" x="-484" y="-459">s : int[0,MemoryMaxIndex - 1],
 e : int[0,MemoryMaxIndex - 1]</label>
 			<label kind="guard" x="-484" y="-425">canRead(s, e)</label>
@@ -1562,8 +1571,8 @@ end = e</label>
 			<nail x="-382" y="-374"/>
 		</transition>
 		<transition>
-			<source ref="id79"/>
-			<target ref="id78"/>
+			<source ref="id81"/>
+			<target ref="id80"/>
 			<label kind="synchronisation" x="-238" y="-501">PowerOnBC?</label>
 			<label kind="assignment" x="-238" y="-484">initializePmp()</label>
 			<nail x="-238" y="-510"/>
@@ -1611,34 +1620,34 @@ bool canExecute(int startIndex, int endIndex){
                 return true;
     return false;
 }</declaration>
-		<location id="id82" x="-204" y="-340">
+		<location id="id84" x="-204" y="-340">
 			<name x="-212" y="-314">Idle</name>
 		</location>
-		<location id="id83" x="-238" y="-493">
+		<location id="id85" x="-238" y="-493">
 			<name x="-248" y="-527">Initial</name>
 		</location>
-		<location id="id84" x="136" y="-340">
+		<location id="id86" x="136" y="-340">
 			<name x="153" y="-357">Writing_Memory</name>
 			<committed/>
 		</location>
-		<location id="id85" x="-544" y="-340">
+		<location id="id87" x="-544" y="-340">
 			<name x="-663" y="-374">Reading_Memory</name>
 			<committed/>
 		</location>
-		<location id="id86" x="-85" y="-153">
+		<location id="id88" x="-85" y="-153">
 			<name x="-68" y="-161">CannotExecute</name>
 			<committed/>
 		</location>
-		<init ref="id83"/>
+		<init ref="id85"/>
 		<transition>
-			<source ref="id86"/>
-			<target ref="id82"/>
+			<source ref="id88"/>
+			<target ref="id84"/>
 			<label kind="synchronisation" x="-68" y="-187">RaiseExceptionBC!</label>
 			<nail x="-68" y="-170"/>
 		</transition>
 		<transition>
-			<source ref="id82"/>
-			<target ref="id86"/>
+			<source ref="id84"/>
+			<target ref="id88"/>
 			<label kind="select" x="-212" y="-136">s : int[0,MemoryMaxIndex - 1],
 e : int[0,MemoryMaxIndex - 1]</label>
 			<label kind="guard" x="-212" y="-102">!canExecute(s,e)</label>
@@ -1646,24 +1655,24 @@ e : int[0,MemoryMaxIndex - 1]</label>
 			<nail x="-102" y="-136"/>
 		</transition>
 		<transition>
-			<source ref="id84"/>
-			<target ref="id82"/>
+			<source ref="id86"/>
+			<target ref="id84"/>
 			<label kind="guard" x="-35" y="-416">!canWrite(start,end)</label>
 			<label kind="synchronisation" x="-34" y="-399">RaiseExceptionBC!</label>
 			<label kind="assignment" x="-34" y="-382">start = 0,
 end = 0</label>
 		</transition>
 		<transition>
-			<source ref="id85"/>
-			<target ref="id82"/>
+			<source ref="id87"/>
+			<target ref="id84"/>
 			<label kind="guard" x="-433" y="-416">!canRead(start,end)</label>
 			<label kind="synchronisation" x="-433" y="-399">RaiseExceptionBC!</label>
 			<label kind="assignment" x="-433" y="-382">start = 0,
 end = 0</label>
 		</transition>
 		<transition>
-			<source ref="id85"/>
-			<target ref="id82"/>
+			<source ref="id87"/>
+			<target ref="id84"/>
 			<label kind="guard" x="-510" y="-280">canRead(start, end)</label>
 			<label kind="synchronisation" x="-510" y="-263">PmpReadMemory[start][end]!</label>
 			<label kind="assignment" x="-510" y="-246">start = 0,
@@ -1672,8 +1681,8 @@ end = 0</label>
 			<nail x="-340" y="-204"/>
 		</transition>
 		<transition>
-			<source ref="id84"/>
-			<target ref="id82"/>
+			<source ref="id86"/>
+			<target ref="id84"/>
 			<label kind="guard" x="-50" y="-238">canWrite(start,end)</label>
 			<label kind="synchronisation" x="-51" y="-297">PmpWriteMemory[start][end]!</label>
 			<label kind="assignment" x="-51" y="-280">start = 0,
@@ -1682,8 +1691,8 @@ end = 0</label>
 			<nail x="-68" y="-204"/>
 		</transition>
 		<transition>
-			<source ref="id82"/>
-			<target ref="id82"/>
+			<source ref="id84"/>
+			<target ref="id84"/>
 			<label kind="select" x="-450" y="-127">s : int[0,MemoryMaxIndex - 1],
 e : int[0,MemoryMaxIndex - 1]</label>
 			<label kind="guard" x="-450" y="-93">canExecute(s,e)</label>
@@ -1692,8 +1701,8 @@ e : int[0,MemoryMaxIndex - 1]</label>
 			<nail x="-306" y="-136"/>
 		</transition>
 		<transition>
-			<source ref="id82"/>
-			<target ref="id84"/>
+			<source ref="id84"/>
+			<target ref="id86"/>
 			<label kind="select" x="0" y="-578">s : int[0,MemoryMaxIndex - 1],
 e : int[0,MemoryMaxIndex - 1]</label>
 			<label kind="synchronisation" x="0" y="-535">TryWriteMemory[s][e]?</label>
@@ -1703,8 +1712,8 @@ end = e</label>
 			<nail x="136" y="-476"/>
 		</transition>
 		<transition>
-			<source ref="id82"/>
-			<target ref="id85"/>
+			<source ref="id84"/>
+			<target ref="id87"/>
 			<label kind="select" x="-510" y="-578">s : int[0,MemoryMaxIndex - 1],
 e : int[0,MemoryMaxIndex - 1]</label>
 			<label kind="synchronisation" x="-510" y="-544">TryReadMemory[s][e]?</label>
@@ -1714,8 +1723,8 @@ end = e</label>
 			<nail x="-544" y="-476"/>
 		</transition>
 		<transition>
-			<source ref="id83"/>
-			<target ref="id82"/>
+			<source ref="id85"/>
+			<target ref="id84"/>
 			<label kind="synchronisation" x="-229" y="-484">PowerOnBC?</label>
 			<label kind="assignment" x="-229" y="-467">initializePmp()</label>
 			<nail x="-238" y="-467"/>
@@ -1734,22 +1743,22 @@ void unscramble(){
 }
 
 </declaration>
-		<location id="id87" x="51" y="-17">
+		<location id="id89" x="51" y="-17">
 		</location>
-		<location id="id88" x="51" y="-85">
+		<location id="id90" x="51" y="-85">
 		</location>
-		<location id="id89" x="-119" y="-51">
+		<location id="id91" x="-119" y="-51">
 			<name x="-129" y="-85">Idle</name>
 		</location>
-		<location id="id90" x="-442" y="-51">
+		<location id="id92" x="-442" y="-51">
 			<committed/>
 		</location>
-		<location id="id91" x="-442" y="102">
+		<location id="id93" x="-442" y="102">
 		</location>
-		<init ref="id89"/>
+		<init ref="id91"/>
 		<transition>
-			<source ref="id91"/>
-			<target ref="id89"/>
+			<source ref="id93"/>
+			<target ref="id91"/>
 			<label kind="guard" x="-357" y="8">!GlobalMemoryIsScrambled</label>
 			<label kind="synchronisation" x="-357" y="25">FlashReadReturn!</label>
 			<label kind="assignment" x="-357" y="42">startIndex = 0,
@@ -1760,19 +1769,19 @@ endIndex = 0</label>
 			<nail x="-136" y="-34"/>
 		</transition>
 		<transition>
-			<source ref="id87"/>
-			<target ref="id89"/>
+			<source ref="id89"/>
+			<target ref="id91"/>
 			<label kind="assignment" x="-93" y="-8">startIndex = 0,
 endIndex = 0</label>
 		</transition>
 		<transition>
-			<source ref="id88"/>
-			<target ref="id87"/>
+			<source ref="id90"/>
+			<target ref="id89"/>
 			<label kind="synchronisation" x="51" y="-68">TryWriteMemory[startIndex][endIndex]!</label>
 		</transition>
 		<transition>
-			<source ref="id89"/>
-			<target ref="id88"/>
+			<source ref="id91"/>
+			<target ref="id90"/>
 			<label kind="select" x="-42" y="-187">s : int[0, MemoryMaxIndex - 1],
 e : int[0, MemoryMaxIndex - 1]</label>
 			<label kind="synchronisation" x="-42" y="-153">FlashWrite[s][e]?</label>
@@ -1780,8 +1789,8 @@ e : int[0, MemoryMaxIndex - 1]</label>
 endIndex = e</label>
 		</transition>
 		<transition>
-			<source ref="id91"/>
-			<target ref="id89"/>
+			<source ref="id93"/>
+			<target ref="id91"/>
 			<label kind="guard" x="-357" y="110">GlobalMemoryIsScrambled</label>
 			<label kind="synchronisation" x="-357" y="127">FlashReadReturn!</label>
 			<label kind="assignment" x="-357" y="144">unscramble(),
@@ -1795,13 +1804,13 @@ gives til intended user.</label>
 			<nail x="-119" y="102"/>
 		</transition>
 		<transition>
-			<source ref="id90"/>
-			<target ref="id91"/>
+			<source ref="id92"/>
+			<target ref="id93"/>
 			<label kind="synchronisation" x="-688" y="0">TryReadMemory[startIndex][endIndex]!</label>
 		</transition>
 		<transition>
-			<source ref="id89"/>
-			<target ref="id90"/>
+			<source ref="id91"/>
+			<target ref="id92"/>
 			<label kind="select" x="-399" y="-153">s : int[0, MemoryMaxIndex - 1],
 e : int[0, MemoryMaxIndex - 1]</label>
 			<label kind="synchronisation" x="-399" y="-119">FlashRead[s][e]?</label>
@@ -1811,16 +1820,16 @@ endIndex = e</label>
 	</template>
 	<template>
 		<name>ExceptionHandler</name>
-		<location id="id92" x="-102" y="-102">
+		<location id="id94" x="-102" y="-102">
 			<name x="-85" y="-136">Exception_Raised</name>
 			<committed/>
 		</location>
-		<location id="id93" x="-238" y="-102">
+		<location id="id95" x="-238" y="-102">
 		</location>
-		<init ref="id93"/>
+		<init ref="id95"/>
 		<transition>
-			<source ref="id93"/>
-			<target ref="id92"/>
+			<source ref="id95"/>
+			<target ref="id94"/>
 			<label kind="synchronisation" x="-221" y="-136">RaiseExceptionBC?</label>
 		</transition>
 	</template>
@@ -1829,22 +1838,22 @@ endIndex = e</label>
 		<declaration>life_cycle_state_t State = {54, 9, -2, 11, 27};
 
 </declaration>
-		<location id="id94" x="0" y="-68">
+		<location id="id96" x="0" y="-68">
 			<committed/>
 		</location>
-		<location id="id95" x="-136" y="-68">
+		<location id="id97" x="-136" y="-68">
 		</location>
-		<init ref="id95"/>
+		<init ref="id97"/>
 		<transition>
-			<source ref="id94"/>
-			<target ref="id95"/>
+			<source ref="id96"/>
+			<target ref="id97"/>
 			<label kind="synchronisation" x="-136" y="-34">ReturnLifeCycleState!</label>
 			<label kind="assignment" x="-136" y="-17">GlobalLifeCycleState = State</label>
 			<nail x="-68" y="-34"/>
 		</transition>
 		<transition>
-			<source ref="id95"/>
-			<target ref="id94"/>
+			<source ref="id97"/>
+			<target ref="id96"/>
 			<label kind="synchronisation" x="-127" y="-127">RequestLifeCycleState?</label>
 			<nail x="-68" y="-102"/>
 		</transition>
@@ -1952,31 +1961,31 @@ void HMAC() // Assuming the key is always exactly 512 bits long.
     
     hash(outputSize + blockSize);
 }*/</declaration>
-		<location id="id96" x="-680" y="-170">
+		<location id="id98" x="-680" y="-170">
 		</location>
-		<location id="id97" x="-952" y="-170">
+		<location id="id99" x="-952" y="-170">
 		</location>
-		<location id="id98" x="-952" y="-408">
+		<location id="id100" x="-952" y="-408">
 		</location>
-		<location id="id99" x="-680" y="-408">
+		<location id="id101" x="-680" y="-408">
 		</location>
-		<init ref="id97"/>
+		<init ref="id99"/>
 		<transition>
-			<source ref="id99"/>
-			<target ref="id96"/>
+			<source ref="id101"/>
+			<target ref="id98"/>
 			<label kind="synchronisation" x="-654" y="-314">ReturnSecretKey?</label>
 			<label kind="assignment" x="-680" y="-289">secretKey = GlobalSecretKey,
 GlobalSecretKey = 0,
 Progress = 1</label>
 		</transition>
 		<transition>
-			<source ref="id98"/>
-			<target ref="id99"/>
+			<source ref="id100"/>
+			<target ref="id101"/>
 			<label kind="synchronisation" x="-892" y="-433">RequestSecretKey!</label>
 		</transition>
 		<transition>
-			<source ref="id96"/>
-			<target ref="id96"/>
+			<source ref="id98"/>
+			<target ref="id98"/>
 			<label kind="guard" x="-526" y="-204">loopIndex &lt; 2</label>
 			<label kind="assignment" x="-527" y="-187">calculateMessagePadding(),
 breakIntoChunks(),
@@ -1988,8 +1997,8 @@ Progress += 1</label>
 			<nail x="-612" y="-102"/>
 		</transition>
 		<transition>
-			<source ref="id96"/>
-			<target ref="id97"/>
+			<source ref="id98"/>
+			<target ref="id99"/>
 			<label kind="select" x="-867" y="-153">i : int[0,1]</label>
 			<label kind="guard" x="-867" y="-136">loopIndex &gt;= 2</label>
 			<label kind="synchronisation" x="-867" y="-119">HMACReturn!</label>
@@ -1999,8 +2008,8 @@ GlobalImageCode = message,
 Progress = 4</label>
 		</transition>
 		<transition>
-			<source ref="id97"/>
-			<target ref="id98"/>
+			<source ref="id99"/>
+			<target ref="id100"/>
 			<label kind="synchronisation" x="-1139" y="-323">HMACCalled?</label>
 			<label kind="assignment" x="-1139" y="-306">calculateInnerPadding(),
 calculateOuterPadding(),
@@ -2029,116 +2038,123 @@ void deriveSecretKey(){
 }
 
 </declaration>
-		<location id="id100" x="-357" y="-272">
+		<location id="id102" x="-357" y="-272">
 		</location>
-		<location id="id101" x="-637" y="-306">
+		<location id="id103" x="-544" y="-391">
 		</location>
-		<location id="id102" x="-467" y="-144">
+		<location id="id104" x="-467" y="-144">
 			<name x="-450" y="-170">OwnerIntermediateKey</name>
 			<label kind="comments" x="-450" y="-144">Derive more keys, but this is out of scope</label>
 		</location>
-		<location id="id103" x="-467" y="-272">
-			<name x="-484" y="-238">CreatorRootKeyDerived</name>
+		<location id="id105" x="-467" y="-272">
+			<name x="-637" y="-280">CreatorRootKeyDerived</name>
 		</location>
-		<location id="id104" x="-467" y="-596">
+		<location id="id106" x="-467" y="-596">
 			<name x="-543" y="-604">Initialized</name>
 			<committed/>
 		</location>
-		<location id="id105" x="-467" y="-629">
-			<name x="-526" y="-637">Reset</name>
+		<location id="id107" x="-467" y="-663">
+			<name x="-526" y="-671">Reset</name>
 		</location>
-		<location id="id106" x="-467" y="-536">
+		<location id="id108" x="-467" y="-536">
 			<committed/>
 		</location>
-		<location id="id107" x="-467" y="-451">
+		<location id="id109" x="-467" y="-451">
 			<committed/>
 		</location>
-		<location id="id108" x="-467" y="-391">
+		<location id="id110" x="-467" y="-391">
 			<committed/>
 		</location>
-		<location id="id109" x="-731" y="-272">
+		<location id="id111" x="-765" y="-391">
 		</location>
-		<location id="id110" x="-671" y="-238">
+		<location id="id112" x="-765" y="-272">
 		</location>
-		<location id="id111" x="-612" y="-178">
+		<location id="id113" x="-544" y="-170">
 		</location>
-		<init ref="id105"/>
+		<location id="id114" x="-765" y="-170">
+		</location>
+		<init ref="id107"/>
 		<transition>
-			<source ref="id110"/>
-			<target ref="id111"/>
-			<label kind="assignment" x="-739" y="-212">WriteSRAM[][]</label>
+			<source ref="id114"/>
+			<target ref="id113"/>
+			<label kind="synchronisation" x="-722" y="-161">WriteMemoryReturn?</label>
 		</transition>
 		<transition>
-			<source ref="id100"/>
-			<target ref="id103"/>
+			<source ref="id112"/>
+			<target ref="id114"/>
+			<label kind="synchronisation" x="-875" y="-238">WriteMemory!</label>
+		</transition>
+		<transition>
+			<source ref="id102"/>
+			<target ref="id105"/>
 			<label kind="synchronisation" x="-450" y="-314">ReturnScrambleKey!</label>
 			<label kind="assignment" x="-450" y="-305">GlobalSecretKey = 27</label>
 			<nail x="-408" y="-289"/>
 		</transition>
 		<transition>
-			<source ref="id103"/>
-			<target ref="id100"/>
+			<source ref="id105"/>
+			<target ref="id102"/>
 			<label kind="synchronisation" x="-450" y="-255">RequestScrambleKey?</label>
 			<nail x="-408" y="-255"/>
 		</transition>
 		<transition>
-			<source ref="id109"/>
-			<target ref="id110"/>
-			<label kind="synchronisation" x="-824" y="-246">KMACReturn?</label>
-			<nail x="-731" y="-238"/>
+			<source ref="id111"/>
+			<target ref="id112"/>
+			<label kind="synchronisation" x="-875" y="-340">KMACReturn?</label>
 		</transition>
 		<transition>
-			<source ref="id101"/>
-			<target ref="id109"/>
-			<label kind="synchronisation" x="-909" y="-357">KMACCalled!</label>
-			<label kind="assignment" x="-909" y="-340">GlobalSecretKey = CreatorRootKey</label>
-			<nail x="-731" y="-306"/>
+			<source ref="id103"/>
+			<target ref="id111"/>
+			<label kind="synchronisation" x="-756" y="-459">KMACCalled!</label>
+			<label kind="assignment" x="-756" y="-442">GlobalSecretKey = CreatorRootKey</label>
 		</transition>
 		<transition>
-			<source ref="id108"/>
-			<target ref="id103"/>
+			<source ref="id110"/>
+			<target ref="id105"/>
 			<label kind="synchronisation" x="-459" y="-374">KMACReturn?</label>
 			<label kind="assignment" x="-459" y="-357">CreatorRootKey = GlobalKMACResult,
 GlobalKMACResult = 0</label>
 		</transition>
 		<transition>
-			<source ref="id107"/>
-			<target ref="id108"/>
+			<source ref="id109"/>
+			<target ref="id110"/>
 			<label kind="synchronisation" x="-450" y="-442">KMACCalled!</label>
 			<label kind="assignment" x="-450" y="-425">GlobalSecretKey = rootKey</label>
 		</transition>
 		<transition>
-			<source ref="id106"/>
-			<target ref="id107"/>
+			<source ref="id108"/>
+			<target ref="id109"/>
 			<label kind="synchronisation" x="-450" y="-510">ReturnLifeCycleState?</label>
 			<label kind="assignment" x="-450" y="-493">LifeCycleState = GlobalLifeCycleState</label>
 		</transition>
 		<transition>
-			<source ref="id111"/>
-			<target ref="id103"/>
-			<label kind="synchronisation" x="-595" y="-187">ReturnSecretKey!</label>
+			<source ref="id113"/>
+			<target ref="id105"/>
+			<label kind="synchronisation" x="-663" y="-221">ReturnSecretKey!</label>
+			<nail x="-544" y="-238"/>
 			<nail x="-510" y="-238"/>
 		</transition>
 		<transition>
-			<source ref="id103"/>
-			<target ref="id101"/>
-			<label kind="synchronisation" x="-620" y="-332">RequestSecretKey?</label>
+			<source ref="id105"/>
+			<target ref="id103"/>
+			<label kind="synchronisation" x="-671" y="-357">RequestSecretKey?</label>
 			<nail x="-510" y="-306"/>
-		</transition>
-		<transition>
-			<source ref="id103"/>
-			<target ref="id102"/>
-			<label kind="synchronisation" x="-450" y="-204">AdvanceKMState?</label>
-		</transition>
-		<transition>
-			<source ref="id104"/>
-			<target ref="id106"/>
-			<label kind="synchronisation" x="-450" y="-578">RequestLifeCycleState!</label>
+			<nail x="-544" y="-306"/>
 		</transition>
 		<transition>
 			<source ref="id105"/>
 			<target ref="id104"/>
-			<label kind="synchronisation" x="-467" y="-616">PowerOnBC?</label>
+			<label kind="synchronisation" x="-450" y="-204">AdvanceKMState?</label>
+		</transition>
+		<transition>
+			<source ref="id106"/>
+			<target ref="id108"/>
+			<label kind="synchronisation" x="-450" y="-578">RequestLifeCycleState!</label>
+		</transition>
+		<transition>
+			<source ref="id107"/>
+			<target ref="id106"/>
+			<label kind="synchronisation" x="-459" y="-637">PowerOnBC?</label>
 		</transition>
 	</template>
 	<template>
@@ -2185,15 +2201,15 @@ void clearLifeCycleState(){
     LifeCycleState.Reg4 = 0;
     LifeCycleState.Reg5 = 0;
 }</declaration>
-		<location id="id112" x="459" y="255">
+		<location id="id115" x="459" y="255">
 			<committed/>
 		</location>
-		<location id="id113" x="323" y="255">
+		<location id="id116" x="323" y="255">
 		</location>
-		<init ref="id113"/>
+		<init ref="id116"/>
 		<transition>
-			<source ref="id112"/>
-			<target ref="id112"/>
+			<source ref="id115"/>
+			<target ref="id115"/>
 			<label kind="guard" x="613" y="221">loopIndex &lt; 2</label>
 			<label kind="assignment" x="612" y="238">breakIntoChunks(),
 hash(),
@@ -2204,8 +2220,8 @@ loopIndex += 1</label>
 			<nail x="527" y="323"/>
 		</transition>
 		<transition>
-			<source ref="id112"/>
-			<target ref="id113"/>
+			<source ref="id115"/>
+			<target ref="id116"/>
 			<label kind="select" x="297" y="340">i : int[0,1]</label>
 			<label kind="guard" x="297" y="357">loopIndex &gt;= 2</label>
 			<label kind="synchronisation" x="297" y="374">KMACReturn!</label>
@@ -2216,8 +2232,8 @@ clearLifeCycleState()</label>
 			<nail x="391" y="323"/>
 		</transition>
 		<transition>
-			<source ref="id113"/>
-			<target ref="id112"/>
+			<source ref="id116"/>
+			<target ref="id115"/>
 			<label kind="synchronisation" x="297" y="76">KMACCalled?</label>
 			<label kind="assignment" x="297" y="93">key = GlobalSecretKey,
 LifeCycleState = GlobalLifeCycleState,
@@ -2233,7 +2249,7 @@ GlobalSecretKey = 0</label>
     </system>
 	<queries>
 		<query>
-			<formula>A[] ROMStage.ReadyToRunROMExt imply (PmpRegions[0].execute &amp;&amp; PmpRegions[0].startAddress &lt;= ROMStage.currentManifest.entryPoint &amp;&amp; PmpRegions[0].endAddress &gt;= ROMStage.currentManifest.entryPoint)</formula>
+			<formula>A[] ROMStage.ReadyToRunROMExt imply (PmpRegions[0].execute &amp;&amp; PmpRegions[0].startAddress &lt;= ROMStage.currentManifest.entryPoint &amp;&amp; PmpRegions[0].endAddress &gt;= ROMStage.currentManifest.entryPoint + 4)</formula>
 			<comment>Whenever the rom ext is running, it must be true, that the PMP regions allow for executing that entrypoint.</comment>
 		</query>
 		<query>
@@ -2295,6 +2311,18 @@ GlobalSecretKey = 0</label>
 		<query>
 			<formula>A[] ROMStage.IdentifierChecked imply ROMStage.currentManifest.identifier == 1</formula>
 			<comment>Bekræfter at man altid har 1 i identifer efter man har lavet checket.</comment>
+		</query>
+		<query>
+			<formula>A[]
+(ExceptionHandler.Exception_Raised imply SRAMController.scrambled) &amp;&amp;
+(final_jump_to_rom_ext.ROM_ext_running imply (ROMStage.currentManifest.publicKey.exponent == 1 &amp;&amp; ROMStage.currentManifest.publicKey.modulus == 1 &amp;&amp; ROMStage.currentManifest.signature == 1 &amp;&amp; ROMStage.currentManifest.identifier == 1)) &amp;&amp;
+(ROMStage.SignatureCheck imply (ROMStage.currentManifest.publicKey.exponent == 1 &amp;&amp; ROMStage.currentManifest.publicKey.modulus == 1 &amp;&amp; ROMStage.currentManifest.identifier == 1)) &amp;&amp;
+(final_jump_to_rom_ext.ROM_ext_running imply GlobalMemoryIsScrambled == false) &amp;&amp;
+(ROMStage.CheckedSignature imply (ROMStage.currentManifest.identifier == 1 &amp;&amp; ROMStage.currentManifest.publicKey.modulus == 1 &amp;&amp; ROMStage.currentManifest.publicKey.exponent == 1 &amp;&amp; ROMStage.currentManifest.signature == 1)) &amp;&amp;
+(ROMStage.CheckingSignature imply (ROMStage.currentManifest.identifier == 1 &amp;&amp; ROMStage.currentManifest.publicKey.modulus == 1 &amp;&amp; ROMStage.currentManifest.publicKey.exponent == 1)) &amp;&amp;
+(ROMStage.IdentifierChecked imply ROMStage.currentManifest.identifier == 1) &amp;&amp;
+(FlashController.Idle imply !GlobalMemoryIsScrambled)</formula>
+			<comment></comment>
 		</query>
 		<query>
 			<formula>A[] FlashController.Idle imply !GlobalMemoryIsScrambled</formula>
