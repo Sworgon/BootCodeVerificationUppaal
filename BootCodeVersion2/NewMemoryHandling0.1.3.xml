@@ -768,13 +768,13 @@ e : int[0,MemoryMaxIndex - 1]</label>
 		<transition>
 			<source ref="id35"/>
 			<target ref="id34"/>
-			<label kind="select" x="-782" y="-765">i : int[1,2],
-j : int[0,1],
-k : int[0,1],
-l : int[0,1],
+			<label kind="select" x="-867" y="-765">i : int[1,2],
+j : int[1,2],
+k : int[1,2],
+l : int[1,2],
 m : int[0,2]</label>
-			<label kind="synchronisation" x="-782" y="-671">PowerOnBC?</label>
-			<label kind="assignment" x="-782" y="-654">initializeMemory(),
+			<label kind="synchronisation" x="-867" y="-671">PowerOnBC?</label>
+			<label kind="assignment" x="-867" y="-654">initializeMemory(),
 manifests.rom_exts_mfs[0].image_code = i,
 manifests.rom_exts_mfs[0].signature = j,
 manifests.rom_exts_mfs[0].publicKey.exponent = k,
@@ -1952,7 +1952,14 @@ endIndex = e</label>
 		<transition>
 			<source ref="id121"/>
 			<target ref="id120"/>
-			<label kind="synchronisation" x="-229" y="-136">RaiseExceptionBC?</label>
+			<label kind="synchronisation" x="-212" y="-68">NotInSRAM?</label>
+			<nail x="-170" y="-68"/>
+		</transition>
+		<transition>
+			<source ref="id121"/>
+			<target ref="id120"/>
+			<label kind="synchronisation" x="-229" y="-161">RaiseExceptionBC?</label>
+			<nail x="-170" y="-136"/>
 		</transition>
 	</template>
 	<template>
@@ -2506,11 +2513,16 @@ bool existsInSRAM(int startIndex, int endIndex){
     return false;
 }
 
+bool publicKeyEquals(pub_key_t key1, pub_key_t key2){
+    return key1.modulus == key2.modulus &amp;&amp;
+           key1.exponent == key2.exponent;
+}
+
 bool manifestEquals(rom_ext_manifest_t manifest1, rom_ext_manifest_t manifest2){
     return manifest1.identifier == manifest2.identifier &amp;&amp;
            manifest1.image_code == manifest2.image_code &amp;&amp;
            manifest1.signature == manifest2.signature &amp;&amp;
-           manifest1.publicKey == manifest2.publicKey &amp;&amp;
+           publicKeyEquals(manifest1.publicKey, manifest2.publicKey) &amp;&amp;
            manifest1.entryPoint == manifest2.entryPoint;
 }
 
@@ -2521,10 +2533,7 @@ bool bootPolicyEquals(boot_policy_t bootPolicy1, boot_policy_t bootPolicy2){
            bootPolicy1.rom_ext_failure_function_address == bootPolicy2.rom_ext_failure_function_address;
 }
 
-bool publicKeyEquals(pub_key_t key1, pub_key_t key2){
-    return key1.modulus == key2.modulus &amp;&amp;
-           key1.exponent == key2.exponent;
-}
+
 
 void unscramble(){
     GlobalMemoryIsScrambled = false;
@@ -2702,7 +2711,7 @@ GlobalDigest == 0 &amp;&amp;
 GlobalImageCode == 0 &amp;&amp; 
 bootPolicyEquals(GlobalBootPolicy, GlobalEmptyBootPolicy) &amp;&amp;
 GlobalSignature == 0</label>
-			<label kind="synchronisation" x="-34" y="-68">NotInSRAM!</label>
+			<label kind="synchronisation" x="-25" y="-68">NotInSRAM!</label>
 		</transition>
 		<transition>
 			<source ref="id157"/>
