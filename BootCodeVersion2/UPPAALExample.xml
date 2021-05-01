@@ -4,7 +4,7 @@
 	<declaration>// Place global declarations here.
 
 int v;
-clock x;
+
 chan communicate;
 
 broadcast chan Action;
@@ -12,161 +12,105 @@ chan reset;
 
 bool critialSectionOccupied;</declaration>
 	<template>
-		<name x="5" y="5">Template1</name>
-		<declaration>
-
-
-int square(int i){
-    return i * i;
-}</declaration>
-		<location id="id0" x="-170" y="0">
-			<urgent/>
+		<name>Controller</name>
+		<location id="id0" x="-136" y="0" color="#c0c0c0">
+			<name x="-161" y="17">Working</name>
 		</location>
-		<location id="id1" x="-34" y="0">
-		</location>
-		<location id="id2" x="102" y="0">
-			<urgent/>
+		<location id="id1" x="-136" y="-102" color="#000000">
+			<name x="-146" y="-136">Idle</name>
+			<committed/>
 		</location>
 		<init ref="id1"/>
 		<transition>
-			<source ref="id2"/>
-			<target ref="id1"/>
-			<label kind="select" x="8" y="-127">i : int[0,3]</label>
-			<label kind="synchronisation" x="8" y="-110">communicate!</label>
-			<label kind="assignment" x="8" y="-93">v += square(i)</label>
-			<nail x="34" y="-34"/>
-		</transition>
-		<transition>
 			<source ref="id0"/>
 			<target ref="id1"/>
-			<label kind="select" x="-153" y="-127">i : int[5,15]</label>
-			<label kind="synchronisation" x="-153" y="-110">communicate!</label>
-			<label kind="assignment" x="-153" y="-93">v += square(i)</label>
-			<nail x="-102" y="-34"/>
+			<label kind="synchronisation" x="-212" y="-68">reset?</label>
+			<nail x="-170" y="-51"/>
 		</transition>
 		<transition>
 			<source ref="id1"/>
 			<target ref="id0"/>
-			<label kind="guard" x="-119" y="34">x &gt;= 10</label>
-			<nail x="-102" y="34"/>
-		</transition>
-		<transition>
-			<source ref="id1"/>
-			<target ref="id2"/>
-			<label kind="guard" x="17" y="34">x &lt; 10</label>
-			<nail x="34" y="34"/>
-		</transition>
-	</template>
-	<template>
-		<name>Template2</name>
-		<location id="id3" x="-102" y="0">
-			<committed/>
-		</location>
-		<location id="id4" x="-272" y="0">
-		</location>
-		<init ref="id4"/>
-		<transition>
-			<source ref="id3"/>
-			<target ref="id4"/>
-			<label kind="guard" x="-255" y="42">x &lt; 10</label>
-			<label kind="assignment" x="-256" y="59">v = 0,
-x = 0</label>
-			<nail x="-103" y="42"/>
-			<nail x="-273" y="42"/>
-		</transition>
-		<transition>
-			<source ref="id3"/>
-			<target ref="id4"/>
-			<label kind="guard" x="-255" y="-85">x &gt;= 10</label>
-			<label kind="assignment" x="-255" y="-68">v = v * 2,
-x = 0</label>
-			<nail x="-102" y="-34"/>
-			<nail x="-272" y="-34"/>
-		</transition>
-		<transition>
-			<source ref="id4"/>
-			<target ref="id3"/>
-			<label kind="synchronisation" x="-238" y="-17">communicate?</label>
-		</transition>
-	</template>
-	<template>
-		<name>Controller</name>
-		<location id="id5" x="-136" y="0">
-			<name x="-161" y="17">Working</name>
-		</location>
-		<location id="id6" x="-136" y="-102">
-			<name x="-146" y="-136">Idle</name>
-			<committed/>
-		</location>
-		<init ref="id6"/>
-		<transition>
-			<source ref="id5"/>
-			<target ref="id6"/>
-			<label kind="synchronisation" x="-212" y="-59">reset?</label>
-			<nail x="-170" y="-51"/>
-		</transition>
-		<transition>
-			<source ref="id6"/>
-			<target ref="id5"/>
+			<label kind="guard" x="-93" y="-76">v &lt; 30</label>
 			<label kind="synchronisation" x="-93" y="-59">Action!</label>
 			<nail x="-102" y="-51"/>
 		</transition>
 	</template>
 	<template>
 		<name>Worker</name>
-		<parameter>const int[1,2] worker_id</parameter>
-		<declaration>clock x;
-
-int z;</declaration>
-		<location id="id7" x="-68" y="136">
-			<name x="-51" y="127">CriticalSection</name>
-			<urgent/>
+		<parameter>const int[0,10] workTime</parameter>
+		<declaration>clock x;</declaration>
+		<location id="id2" x="-170" y="68">
+			<name x="-272" y="68">CriticalSection</name>
+			<label kind="invariant" x="-272" y="85">x &lt;= workTime</label>
 		</location>
-		<location id="id8" x="-68" y="34">
-			<name x="-51" y="25">Waiting</name>
-			<label kind="invariant" x="8" y="25">x &lt;= 10</label>
+		<location id="id3" x="0" y="68">
+			<name x="17" y="59">Waiting</name>
 		</location>
-		<location id="id9" x="-68" y="-68">
-			<name x="-51" y="-85">Idle</name>
+		<location id="id4" x="-85" y="-51">
+			<name x="-68" y="-68">Idle</name>
 		</location>
-		<init ref="id9"/>
+		<init ref="id4"/>
 		<transition>
-			<source ref="id8"/>
-			<target ref="id9"/>
-			<label kind="synchronisation" x="-153" y="-34">reset!</label>
-			<nail x="-93" y="-17"/>
+			<source ref="id2"/>
+			<target ref="id4"/>
+			<label kind="select" x="-348" y="-76">i : int[1,workTime]</label>
+			<label kind="guard" x="-348" y="-59">x &gt;= workTime</label>
+			<label kind="synchronisation" x="-348" y="-42">reset!</label>
+			<label kind="assignment" x="-348" y="-25">critialSectionOccupied = false,
+v += i,
+x = 0</label>
+			<nail x="-153" y="-17"/>
 		</transition>
 		<transition>
-			<source ref="id7"/>
-			<target ref="id8"/>
-			<label kind="select" x="-34" y="59">i : int[0,5]</label>
-			<label kind="assignment" x="-25" y="76">critialSectionOccupied = false,
-v = 2 * i</label>
-			<nail x="-42" y="85"/>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-136" y="102">!critialSectionOccupied</label>
+			<label kind="assignment" x="-136" y="119">critialSectionOccupied = true,
+x = 0</label>
+			<nail x="-85" y="102"/>
 		</transition>
 		<transition>
-			<source ref="id8"/>
-			<target ref="id7"/>
-			<label kind="guard" x="-289" y="68">!critialSectionOccupied</label>
-			<label kind="assignment" x="-289" y="85">critialSectionOccupied = true</label>
-			<nail x="-93" y="85"/>
-		</transition>
-		<transition>
-			<source ref="id9"/>
-			<target ref="id8"/>
-			<label kind="synchronisation" x="-34" y="-34">Action?</label>
-			<label kind="assignment" x="-34" y="-17">x = 0</label>
-			<nail x="-42" y="-17"/>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-8" y="-34">Action?</label>
+			<label kind="assignment" x="-8" y="-17">x = 0</label>
+			<nail x="-17" y="-17"/>
 		</transition>
 	</template>
 	<system>// Place template instantiations here.
-
+Boss = Controller();
+Worker1 = Worker(5);
+Worker2 = Worker(10);
 // List one or more processes to be composed into a system.
-system Controller, Worker;
+system Boss, Worker1, Worker2;
     </system>
 	<queries>
 		<query>
 			<formula>E&lt;&gt; deadlock</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>E[] v % 7 == 0</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>Worker2.CriticalSection --&gt; Worker2.Idle</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>Worker1.CriticalSection --&gt; Worker1.Idle</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; (Worker1.CriticalSection &amp;&amp; Worker2.CriticalSection)</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; Worker2.x == Worker2.workTime</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; v &gt; 30</formula>
 			<comment></comment>
 		</query>
 	</queries>
