@@ -382,8 +382,8 @@ GlobalImageCode = 0</label>
 	<template>
 		<name>VerifyRomExtSignature</name>
 		<declaration>rom_ext_manifest_t manifest;
-pub_key_t publicKey;
-int digest;
+//pub_key_t publicKey;
+//int digest;
 
 void hash(int a){
     a = a + 2;
@@ -393,20 +393,25 @@ void hash(int a){
 		<location id="id10" x="-1207" y="-255">
 		</location>
 		<location id="id11" x="-926" y="-187">
+			<name x="-936" y="-221">WritingSignature</name>
 		</location>
 		<location id="id12" x="-1241" y="-187">
+			<name x="-1368" y="-212">WaitingForOTBN</name>
 		</location>
 		<location id="id13" x="-1241" y="-323">
+			<name x="-1258" y="-357">Idle</name>
 		</location>
-		<location id="id14" x="-544" y="-323">
+		<location id="id14" x="-586" y="-323">
 		</location>
-		<location id="id15" x="-544" y="-187">
+		<location id="id15" x="-586" y="-187">
+			<name x="-577" y="-221">WaitingForHash</name>
 		</location>
-		<location id="id16" x="-654" y="-187">
+		<location id="id16" x="-688" y="-187">
 		</location>
 		<location id="id17" x="-1011" y="-323">
 		</location>
-		<location id="id18" x="-714" y="-323">
+		<location id="id18" x="-739" y="-323">
+			<name x="-849" y="-357">WritingImageCode</name>
 		</location>
 		<location id="id19" x="-1088" y="-187">
 		</location>
@@ -450,32 +455,30 @@ void hash(int a){
 		<transition>
 			<source ref="id18"/>
 			<target ref="id14"/>
-			<label kind="synchronisation" x="-697" y="-348">WriteMemoryReturn?</label>
+			<label kind="synchronisation" x="-731" y="-348">WriteMemoryReturn?</label>
 		</transition>
 		<transition>
 			<source ref="id17"/>
 			<target ref="id18"/>
-			<label kind="synchronisation" x="-986" y="-314">WriteMemory!</label>
-			<label kind="assignment" x="-986" y="-297">GlobalImageCode = manifest.image_code</label>
+			<label kind="synchronisation" x="-994" y="-314">WriteMemory!</label>
+			<label kind="assignment" x="-994" y="-297">GlobalImageCode = manifest.image_code</label>
 		</transition>
 		<transition>
 			<source ref="id15"/>
 			<target ref="id16"/>
-			<label kind="synchronisation" x="-637" y="-178">HashReturn?</label>
+			<label kind="synchronisation" x="-680" y="-178">HashReturn?</label>
 		</transition>
 		<transition>
 			<source ref="id14"/>
 			<target ref="id15"/>
-			<label kind="synchronisation" x="-535" y="-263">HashCalled!</label>
+			<label kind="synchronisation" x="-578" y="-263">HashCalled!</label>
 		</transition>
 		<transition>
 			<source ref="id13"/>
 			<target ref="id17"/>
-			<label kind="synchronisation" x="-1215" y="-425">VerifyRomExtSignatureCall?</label>
-			<label kind="assignment" x="-1215" y="-408">manifest = GlobalManifest,
-publicKey = GlobalPublicKey,
-clearGlobalManifest(),
-clearGlobalPublicKey()</label>
+			<label kind="synchronisation" x="-1215" y="-382">VerifyRomExtSignatureCall?</label>
+			<label kind="assignment" x="-1215" y="-365">manifest = GlobalManifest,
+clearGlobalManifest()</label>
 		</transition>
 	</template>
 	<template>
@@ -1035,8 +1038,7 @@ void clearManifest(){
 			<source ref="id58"/>
 			<target ref="id48"/>
 			<label kind="synchronisation" x="102" y="-170">VerifyRomExtSignatureCall!</label>
-			<label kind="assignment" x="102" y="-153">GlobalManifest = currentManifest,
-GlobalPublicKey = currentManifest.publicKey</label>
+			<label kind="assignment" x="102" y="-153">GlobalManifest = currentManifest</label>
 		</transition>
 		<transition>
 			<source ref="id56"/>
