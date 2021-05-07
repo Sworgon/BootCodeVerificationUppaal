@@ -3190,123 +3190,123 @@ updateScramble(2)</label>
     </system>
 	<queries>
 		<query>
-			<formula>A[] ROMStage.ReadyToRunROMExt imply (PmpRegions[0].execute &amp;&amp; PmpRegions[0].startAddress &lt;= ROMStage.currentManifest.entryPoint &amp;&amp; PmpRegions[0].endAddress &gt;= ROMStage.currentManifest.entryPoint)</formula>
-			<comment>Whenever the rom ext is running, it must be true, that the PMP regions allow for executing that entrypoint.</comment>
+			<formula>A[] ROMStage.ReadyToRunROMExt imply 
+(PmpRegions[0].execute &amp;&amp; 
+PmpRegions[0].startAddress &lt;= ROMStage.currentManifest.entryPoint &amp;&amp; 
+PmpRegions[0].endAddress &gt;= ROMStage.currentManifest.entryPoint + 4)</formula>
+			<comment>Whenever the rom ext is running, it must be true, that the PMP regions allow for executing that entrypoint.
+G1, G12.</comment>
 		</query>
 		<query>
 			<formula>E[] not( ROMStage.Boot_Failed || ROMStage.Rom_Ext_terminated)</formula>
-			<comment></comment>
+			<comment>There is at least one trace, such that it doesn't fail. In other words: It is possible to succeed.
+Debug</comment>
 		</query>
 		<query>
 			<formula>A[] not( ROMStage.Boot_Failed || ROMStage.Rom_Ext_terminated)</formula>
-			<comment>The ROM Stage will never fail. This is due to the hardcoded values in the manifest / memory. If we eventually implement non-determinism, we expect that this property might not hold.</comment>
+			<comment>The ROM Stage will never fail. This is due to the hardcoded values in the manifest / memory. If we eventually implement non-determinism, we expect that this property might not hold.
+Debug</comment>
 		</query>
 		<query>
-			<formula>ROMStage.currentManifest.identifier != 1 --&gt; (ROMStage.StartOfLoop || ROMStage.Boot_Failed)</formula>
-			<comment></comment>
+			<formula>!EqualManifestContents(validManifest, ROMStage.currentManifest) --&gt; (ROMStage.StartOfLoop || ROMStage.Boot_Failed)</formula>
+			<comment>If the manifest is not the valid manifest, then the ROMSTage will go back to the beginning.
+G1</comment>
 		</query>
 		<query>
-			<formula>(ROMStage.currentManifest.signature != 1 || ROMStage.currentManifest.image_code != 1) --&gt; (ROMStage.StartOfLoop || ROMStage.Boot_Failed)</formula>
-			<comment>If the signature cannot be decrypted and be equal to the image code, the state will eventually be back to startOfLoop</comment>
-		</query>
-		<query>
-			<formula>A[] ROMStage.ReadyToRunROMExt imply (ROMStage.currentManifest.signature == 1 &amp;&amp; ROMStage.currentManifest.image_code == 1)</formula>
-			<comment></comment>
-		</query>
-		<query>
-			<formula>EqualManifestContents(validManifest, ROMStage.currentManifest) --&gt; FinalJumpToRomExt.ROM_ext_running</formula>
-			<comment></comment>
-		</query>
-		<query>
-			<formula>A[] ROMStage.ReadyToRunROMExt imply ROMStage.currentManifest.identifier == 1</formula>
-			<comment></comment>
+			<formula>EqualManifestContents(validManifest, ROMStage.currentManifest) --&gt; (FinalJumpToRomExt.ROM_ext_running &amp;&amp; EqualManifestContents(validManifest, ROMStage.currentManifest))</formula>
+			<comment>If the currentManifest is the valid manifest, then eventually the FinalJump will be in the success state, and the manifest will be the same.
+G1</comment>
 		</query>
 		<query>
 			<formula>E&lt;&gt; final_jump_to_rom_ext.ROM_ext_running</formula>
-			<comment></comment>
+			<comment>Checks whether success is possible 
+
+Debug</comment>
 		</query>
 		<query>
 			<formula>A&lt;&gt; final_jump_to_rom_ext.ROM_ext_running</formula>
-			<comment>We will always reach a state where the rom ext is running.</comment>
+			<comment>We will always reach a state where the rom ext is running.
+Debug</comment>
 		</query>
 		<query>
 			<formula>A[] PmpModule.Good_Write imply (exists (pmpIndex : int[0,15]) PmpRegions[pmpIndex].startAddress &lt;= PmpModule.start &amp;&amp; PmpRegions[pmpIndex].endAddress &gt;= PmpModule.end &amp;&amp; PmpRegions[pmpIndex].write) </formula>
-			<comment></comment>
+			<comment>Whenever the PmpModule is in the GW location, there must exist a pmp region, that allows a write in that region.
+G10</comment>
 		</query>
 		<query>
 			<formula>A[] PmpModule.Good_Execute imply (exists (pmpIndex : int[0,15]) PmpRegions[pmpIndex].startAddress &lt;= PmpModule.start &amp;&amp; PmpRegions[pmpIndex].endAddress &gt;= PmpModule.end &amp;&amp; PmpRegions[pmpIndex].execute) </formula>
-			<comment></comment>
+			<comment>Whenever the PmpModule is in the GW location, there must exist a pmp region, that allows a execute in that region.
+G12</comment>
 		</query>
 		<query>
 			<formula>A[] PmpModule.Good_Read imply (exists (pmpIndex : int[0,15]) PmpRegions[pmpIndex].startAddress &lt;= PmpModule.start &amp;&amp; PmpRegions[pmpIndex].endAddress &gt;= PmpModule.end &amp;&amp; PmpRegions[pmpIndex].read) </formula>
-			<comment></comment>
+			<comment>Whenever the PmpModule is in the GW location, there must exist a pmp region, that allows a read in that region.
+G11</comment>
 		</query>
 		<query>
 			<formula>A[] !PmpModule.Bad_Write</formula>
-			<comment></comment>
+			<comment>A bad write request is never issued
+G10</comment>
 		</query>
 		<query>
 			<formula>A[] !PmpModule.Bad_Execute</formula>
-			<comment></comment>
+			<comment>A bad execute request is never issued
+G12</comment>
 		</query>
 		<query>
 			<formula>A[] !PmpModule.Bad_Read</formula>
-			<comment></comment>
+			<comment>A bad read request is never issued
+G11</comment>
 		</query>
 		<query>
 			<formula>A[] !ExceptionHandler.Exception_Raised</formula>
-			<comment></comment>
-		</query>
-		<query>
-			<formula>A[] ExceptionHandler.Exception_Raised imply SRAMController.scrambled</formula>
-			<comment></comment>
-		</query>
-		<query>
-			<formula>A[] final_jump_to_rom_ext.ROM_ext_running imply (ROMStage.currentManifest.publicKey.exponent == 1 &amp;&amp; ROMStage.currentManifest.publicKey.modulus == 1 &amp;&amp; ROMStage.currentManifest.signature == 1 &amp;&amp; ROMStage.currentManifest.identifier == 1)</formula>
-			<comment></comment>
-		</query>
-		<query>
-			<formula>A[] ROMStage.SignatureCheck imply (ROMStage.currentManifest.publicKey.exponent == 1 &amp;&amp; ROMStage.currentManifest.publicKey.modulus == 1 &amp;&amp; ROMStage.currentManifest.identifier == 1)</formula>
-			<comment></comment>
+			<comment>An error state / exception state is never reached.
+Debug</comment>
 		</query>
 		<query>
 			<formula>A[] final_jump_to_rom_ext.ROM_ext_running imply GlobalMemoryIsScrambled == false</formula>
-			<comment>More a debug check than a security check. Could we ever have that we are reading a scrambled value? No the query states that the most recently read value will always get unscrambled. </comment>
-		</query>
-		<query>
-			<formula>A[]
-(ExceptionHandler.Exception_Raised imply SRAMController.scrambled) &amp;&amp;
-(final_jump_to_rom_ext.ROM_ext_running imply (ROMStage.currentManifest.publicKey.exponent == 1 &amp;&amp; ROMStage.currentManifest.publicKey.modulus == 1 &amp;&amp; ROMStage.currentManifest.signature == 1 &amp;&amp; ROMStage.currentManifest.identifier == 1)) &amp;&amp;
-(ROMStage.SignatureCheck imply (ROMStage.currentManifest.publicKey.exponent == 1 &amp;&amp; ROMStage.currentManifest.publicKey.modulus == 1 &amp;&amp; ROMStage.currentManifest.identifier == 1)) &amp;&amp;
-(final_jump_to_rom_ext.ROM_ext_running imply GlobalMemoryIsScrambled == false) &amp;&amp;
-(ROMStage.CheckedSignature imply (ROMStage.currentManifest.identifier == 1 &amp;&amp; ROMStage.currentManifest.publicKey.modulus == 1 &amp;&amp; ROMStage.currentManifest.publicKey.exponent == 1 &amp;&amp; ROMStage.currentManifest.signature == 1)) &amp;&amp;
-(ROMStage.CheckingSignature imply (ROMStage.currentManifest.identifier == 1 &amp;&amp; ROMStage.currentManifest.publicKey.modulus == 1 &amp;&amp; ROMStage.currentManifest.publicKey.exponent == 1)) &amp;&amp;
-(ROMStage.IdentifierChecked imply ROMStage.currentManifest.identifier == 1)</formula>
-			<comment></comment>
+			<comment>More a debug check than a security check. Could we ever have that we are reading a scrambled value? No the query states that the most recently read value will always get unscrambled. 
+debug</comment>
 		</query>
 		<query>
 			<formula>A[] ROMStage.CheckedSignature imply (ROMStage.currentManifest.identifier == 1 &amp;&amp; ROMStage.currentManifest.publicKey.modulus == 1 &amp;&amp; ROMStage.currentManifest.publicKey.exponent == 1 &amp;&amp; ROMStage.currentManifest.signature == 1)</formula>
-			<comment>Belræfter at man ved ROMStage.CheckedSignature altid har et i alle felterne i manifestet</comment>
+			<comment>Bekræfter at man ved ROMStage.CheckedSignature altid har et i alle felterne i manifestet
+G1</comment>
 		</query>
 		<query>
 			<formula>A[] ROMStage.CheckingSignature imply (ROMStage.currentManifest.identifier == 1 &amp;&amp; ROMStage.currentManifest.publicKey.modulus == 1 &amp;&amp; ROMStage.currentManifest.publicKey.exponent == 1)</formula>
-			<comment>Bekræfter at man ved ROMStage.CheckingSignature altid har 1 i de felter der er blevet checket</comment>
+			<comment>Bekræfter at man ved ROMStage.CheckingSignature altid har 1 i de felter der er blevet checket
+G1</comment>
 		</query>
 		<query>
 			<formula>A[] ROMStage.IdentifierChecked imply ROMStage.currentManifest.identifier == 1</formula>
-			<comment>Bekræfter at man altid har 1 i identifer efter man har lavet checket.</comment>
+			<comment>Bekræfter at man altid har 1 i identifer efter man har lavet checket.
+G1</comment>
 		</query>
 		<query>
 			<formula>A[] FlashController.Idle imply !GlobalMemoryIsScrambled</formula>
-			<comment></comment>
+			<comment>The most recently read memory from Flash is always unscrambled before the receiver receives it.
+debug</comment>
 		</query>
 		<query>
 			<formula>A[] !ManifestObserver.Failure</formula>
-			<comment></comment>
+			<comment>The manifestObserver never reaches its fail location.
+G3</comment>
+		</query>
+		<query>
+			<formula>EqualManifestContents(GlobalEmptyManifest, ROMStage.currentManifest) --&gt; FinalJumpToRomExt.ROM_ext_running</formula>
+			<comment>Verifies EqualManifestContents for the negaive case.
+debug</comment>
+		</query>
+		<query>
+			<formula>A[] CheckRomExtManifest.manifest.identifier == 1 imply CheckRomExtManifest.checkRomExtManifest()</formula>
+			<comment>Verifies CheckRomExtManifest template and checkRomExtManifest function.
+G1</comment>
 		</query>
 		<query>
 			<formula>A[] final_jump_to_rom_ext.ROM_ext_running imply ManifestObserver.Success</formula>
-			<comment></comment>
+			<comment>If the success state is reached, the manifest observer will be in its success state also.
+G3</comment>
 		</query>
 	</queries>
 </nta>
