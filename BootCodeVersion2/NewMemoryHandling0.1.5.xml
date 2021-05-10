@@ -401,7 +401,7 @@ void hash(int a){
 			<name x="-936" y="-221">WritingSignature</name>
 		</location>
 		<location id="id12" x="-1241" y="-187">
-			<name x="-1368" y="-212">WaitingForOTBN</name>
+			<name x="-1368" y="-187">WaitingForOTBN</name>
 		</location>
 		<location id="id13" x="-1241" y="-323">
 			<name x="-1258" y="-357">Idle</name>
@@ -1121,44 +1121,44 @@ GlobalManifest = currentManifest</label>
 	<template>
 		<name>ReadPublicKey</name>
 		<declaration>rom_ext_manifest_t manifest;</declaration>
-		<location id="id62" x="-697" y="-731">
+		<location id="id62" x="-1717" y="-1530">
 		</location>
-		<location id="id63" x="-459" y="-731">
+		<location id="id63" x="-1479" y="-1530">
 		</location>
-		<location id="id64" x="-459" y="-595">
+		<location id="id64" x="-1479" y="-1394">
 		</location>
-		<location id="id65" x="-697" y="-595">
+		<location id="id65" x="-1717" y="-1394">
 		</location>
-		<location id="id66" x="-578" y="-858">
+		<location id="id66" x="-1598" y="-1657">
 			<committed/>
 		</location>
 		<init ref="id62"/>
 		<transition>
 			<source ref="id66"/>
 			<target ref="id63"/>
-			<label kind="assignment" x="-484" y="-816">clearGlobalManifest()</label>
+			<label kind="assignment" x="-1504" y="-1615">clearGlobalManifest()</label>
 		</transition>
 		<transition>
 			<source ref="id64"/>
 			<target ref="id65"/>
-			<label kind="synchronisation" x="-646" y="-586">WriteMemoryReturn?</label>
+			<label kind="synchronisation" x="-1666" y="-1385">WriteMemoryReturn?</label>
 		</transition>
 		<transition>
 			<source ref="id63"/>
 			<target ref="id64"/>
-			<label kind="synchronisation" x="-450" y="-680">WriteMemory!</label>
-			<label kind="assignment" x="-450" y="-663">GlobalPublicKey = manifest.publicKey</label>
+			<label kind="synchronisation" x="-1470" y="-1479">WriteMemory!</label>
+			<label kind="assignment" x="-1470" y="-1462">GlobalPublicKey = manifest.publicKey</label>
 		</transition>
 		<transition>
 			<source ref="id65"/>
 			<target ref="id62"/>
-			<label kind="synchronisation" x="-841" y="-680">ReadPublicKeyReturn!</label>
+			<label kind="synchronisation" x="-1861" y="-1479">ReadPublicKeyReturn!</label>
 		</transition>
 		<transition>
 			<source ref="id62"/>
 			<target ref="id66"/>
-			<label kind="synchronisation" x="-816" y="-867">ReadPublicKeyCallBC?</label>
-			<label kind="assignment" x="-816" y="-850">manifest = GlobalManifest</label>
+			<label kind="synchronisation" x="-1819" y="-1640">ReadPublicKeyCallBC?</label>
+			<label kind="assignment" x="-1819" y="-1623">manifest = GlobalManifest</label>
 		</transition>
 	</template>
 	<template>
@@ -3409,11 +3409,13 @@ G9</comment>
 		</query>
 		<query>
 			<formula>A[] SRAM.indexIsEmpty(6)</formula>
-			<comment></comment>
+			<comment>There is never a private key in SRAM
+G8</comment>
 		</query>
 		<query>
 			<formula>A[] ROMStage.RomExtRunning imply forall (i : int[0, 6]) (SRAM.scrambled[i] || SRAM.indexIsEmpty(i))</formula>
-			<comment></comment>
+			<comment>At the end of the ROMStage, the entire SRAM should be either scrambled or empty. In our case it's scrambled.
+G9</comment>
 		</query>
 		<query>
 			<formula>A[] FinalJumpToRomExt.ROM_ext_running imply ManifestObserver.Success</formula>
