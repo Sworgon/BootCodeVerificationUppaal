@@ -2932,6 +2932,7 @@ bool skipWriteToSRAM(){
            (GlobalSignature != 0));
 }</declaration>
 		<location id="id183" x="-12138" y="-12002">
+			<name x="-12146" y="-12036">ChooseType</name>
 		</location>
 		<location id="id184" x="-12189" y="-12257">
 		</location>
@@ -3421,6 +3422,19 @@ G9</comment>
 			<formula>A[] FinalJumpToRomExt.ROM_ext_running imply ManifestObserver.Success</formula>
 			<comment>If the success state is reached, the manifest observer will be in its success state also.
 G3</comment>
+		</query>
+		<query>
+			<formula>A[] 
+ MemoryHandling.ChooseType imply 
+ (((GlobalBootPolicy != GlobalEmptyBootPolicy) +
+ (GlobalImageCode != 0) +
+ (GlobalDigest != 0) +
+ (GlobalPublicKey != GlobalEmptyPublicKey) +
+ (GlobalManifest != GlobalEmptyManifest) +
+ (GlobalSignature != 0) +
+ (GlobalPrivateKey != GlobalEmptyPublicKey)) 
+ == 1)</formula>
+			<comment></comment>
 		</query>
 	</queries>
 </nta>
