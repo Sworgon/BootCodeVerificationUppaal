@@ -939,7 +939,7 @@ void clearManifest(){
 			<name x="-76" y="-8">CheckingKey</name>
 		</location>
 		<location id="id45" x="238" y="-561">
-			<name x="255" y="-578">Rom_Ext_terminated</name>
+			<name x="255" y="-578">RomExtTerminated</name>
 		</location>
 		<location id="id46" x="238" y="-476">
 			<name x="255" y="-484">RomExtRunning</name>
@@ -953,7 +953,7 @@ void clearManifest(){
 		<location id="id49" x="-85" y="-357">
 		</location>
 		<location id="id50" x="-85" y="-561">
-			<name x="-68" y="-578">Boot_Failed</name>
+			<name x="-68" y="-578">BootFailed</name>
 		</location>
 		<location id="id51" x="-85" y="-459">
 			<name x="-68" y="-484">StartOfLoop</name>
@@ -1387,7 +1387,7 @@ clearGlobalBootPolicy()</label>
 		<location id="id84" x="-255" y="-391">
 		</location>
 		<location id="id85" x="-59" y="-391">
-			<name x="-42" y="-391">ROM_ext_running</name>
+			<name x="-42" y="-391">ROMExtRunning</name>
 		</location>
 		<location id="id86" x="-59" y="-289">
 		</location>
@@ -1810,35 +1810,35 @@ bool canExecute(int startIndex, int endIndex){
 			<name x="-248" y="-527">Initial</name>
 		</location>
 		<location id="id114" x="136" y="-340">
-			<name x="153" y="-357">Writing_Memory</name>
+			<name x="153" y="-357">WritingMemory</name>
 			<committed/>
 		</location>
 		<location id="id115" x="-544" y="-340">
-			<name x="-671" y="-357">Reading_Memory</name>
+			<name x="-671" y="-357">ReadingMemory</name>
 			<committed/>
 		</location>
 		<location id="id116" x="-85" y="-153">
-			<name x="-68" y="-153">Bad_Execute</name>
+			<name x="-68" y="-153">BadExecute</name>
 			<committed/>
 		</location>
 		<location id="id117" x="-391" y="-340">
-			<name x="-425" y="-323">Bad_Read</name>
+			<name x="-425" y="-323">BadRead</name>
 			<committed/>
 		</location>
 		<location id="id118" x="-17" y="-340">
-			<name x="-42" y="-331">Bad_Write</name>
+			<name x="-42" y="-331">BadWrite</name>
 			<committed/>
 		</location>
 		<location id="id119" x="-493" y="-204">
-			<name x="-527" y="-187">Good_Read</name>
+			<name x="-527" y="-187">GoodRead</name>
 			<committed/>
 		</location>
 		<location id="id120" x="85" y="-204">
-			<name x="75" y="-238">Good_Write</name>
+			<name x="76" y="-238">GoodWrite</name>
 			<committed/>
 		</location>
 		<location id="id121" x="-323" y="-153">
-			<name x="-408" y="-144">Good_Execute</name>
+			<name x="-408" y="-144">GoodExecute</name>
 			<committed/>
 		</location>
 		<init ref="id113"/>
@@ -2066,7 +2066,7 @@ endIndex = e</label>
 	<template>
 		<name>ExceptionHandler</name>
 		<location id="id129" x="-102" y="-102">
-			<name x="-85" y="-136">Exception_Raised</name>
+			<name x="-85" y="-136">ExceptionRaised</name>
 			<committed/>
 		</location>
 		<location id="id130" x="-238" y="-102">
