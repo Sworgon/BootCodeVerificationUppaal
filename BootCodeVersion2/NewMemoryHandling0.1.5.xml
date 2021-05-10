@@ -141,7 +141,7 @@ chan PmpWriteMemory[MemoryMaxIndex][MemoryMaxIndex],
 broadcast chan FinalJumpCallBC;
 chan FinalJumpReturn;
 
-chan Rom_Ext_Fail;
+chan RomExtFail;
 broadcast chan RaiseExceptionBC;
 
 broadcast chan ReadPublicKeyCallBC; 
@@ -1404,7 +1404,7 @@ clearGlobalBootPolicy()</label>
 		<transition>
 			<source ref="id85"/>
 			<target ref="id84"/>
-			<label kind="synchronisation" x="-221" y="-416">Rom_Ext_Fail?</label>
+			<label kind="synchronisation" x="-221" y="-416">RomExtFail?</label>
 		</transition>
 		<transition>
 			<source ref="id86"/>
@@ -2089,22 +2089,22 @@ endIndex = e</label>
 		<name>LifeCycleController</name>
 		<declaration>life_cycle_state_t currentState = {0, 0, 0, 0, 0};
 life_cycle_state_t correctState = {54, 9, -2, 11, 27};
-int lifeCycleState = 0;
+int lifeCycleValue= 0;
 
 void deriveLifeCycleState(){
-    if (lifeCycleState = 1)
+    if (lifeCycleValue = 1)
         currentState = correctState;
-
 }</declaration>
 		<location id="id131" x="0" y="-68">
 			<committed/>
 		</location>
 		<location id="id132" x="-136" y="-68">
+			<name x="-146" y="-102">Idle</name>
 		</location>
 		<location id="id133" x="-340" y="-255">
 		</location>
 		<location id="id134" x="-136" y="-255">
-			<name x="-128" y="-280">RAW</name>
+			<name x="-144" y="-289">RAW</name>
 		</location>
 		<location id="id135" x="68" y="-255">
 		</location>
@@ -2112,15 +2112,15 @@ void deriveLifeCycleState(){
 		<transition>
 			<source ref="id135"/>
 			<target ref="id132"/>
-			<label kind="synchronisation" x="-178" y="-204">ReturnLifeCyclePartition?</label>
-			<label kind="assignment" x="-178" y="-187">lifeCycleState = GlobalOTPStorage,
+			<label kind="synchronisation" x="25" y="-212">ReturnLifeCyclePartition?</label>
+			<label kind="assignment" x="8" y="-195">lifeCycleValue = GlobalOTPStorage,
 GlobalOTPStorage = 0,
 deriveLifeCycleState()</label>
 		</transition>
 		<transition>
 			<source ref="id134"/>
 			<target ref="id135"/>
-			<label kind="synchronisation" x="-93" y="-280">RequestLifeCyclePartition!</label>
+			<label kind="synchronisation" x="-110" y="-280">RequestLifeCyclePartition!</label>
 		</transition>
 		<transition>
 			<source ref="id133"/>
@@ -2137,7 +2137,7 @@ deriveLifeCycleState()</label>
 		<transition>
 			<source ref="id132"/>
 			<target ref="id131"/>
-			<label kind="synchronisation" x="-127" y="-127">RequestLifeCycleState?</label>
+			<label kind="synchronisation" x="-42" y="-110">RequestLifeCycleState?</label>
 			<nail x="-68" y="-102"/>
 		</transition>
 	</template>
