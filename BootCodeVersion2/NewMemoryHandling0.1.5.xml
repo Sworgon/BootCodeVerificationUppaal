@@ -2092,16 +2092,16 @@ life_cycle_state_t correctState = {54, 9, -2, 11, 27};
 int lifeCycleValue= 0;
 
 void deriveLifeCycleState(){
-    if (lifeCycleValue = 1)
+    if (lifeCycleValue == 1)
         currentState = correctState;
 }</declaration>
-		<location id="id131" x="0" y="-68">
+		<location id="id131" x="-34" y="-110">
 			<committed/>
 		</location>
-		<location id="id132" x="-136" y="-68">
-			<name x="-146" y="-102">Idle</name>
+		<location id="id132" x="68" y="-110">
+			<name x="85" y="-136">Idle</name>
 		</location>
-		<location id="id133" x="-340" y="-255">
+		<location id="id133" x="-136" y="-110">
 		</location>
 		<location id="id134" x="-136" y="-255">
 			<name x="-144" y="-289">RAW</name>
@@ -2112,8 +2112,8 @@ void deriveLifeCycleState(){
 		<transition>
 			<source ref="id135"/>
 			<target ref="id132"/>
-			<label kind="synchronisation" x="25" y="-212">ReturnLifeCyclePartition?</label>
-			<label kind="assignment" x="8" y="-195">lifeCycleValue = GlobalOTPStorage,
+			<label kind="synchronisation" x="76" y="-238">ReturnLifeCyclePartition?</label>
+			<label kind="assignment" x="76" y="-221">lifeCycleValue = GlobalOTPStorage,
 GlobalOTPStorage = 0,
 deriveLifeCycleState()</label>
 		</transition>
@@ -2125,20 +2125,20 @@ deriveLifeCycleState()</label>
 		<transition>
 			<source ref="id133"/>
 			<target ref="id134"/>
-			<label kind="synchronisation" x="-297" y="-280">PowerOnBC?</label>
+			<label kind="synchronisation" x="-229" y="-187">PowerOnBC?</label>
 		</transition>
 		<transition>
 			<source ref="id131"/>
 			<target ref="id132"/>
-			<label kind="synchronisation" x="-136" y="-34">ReturnLifeCycleState!</label>
-			<label kind="assignment" x="-136" y="-17">GlobalLifeCycleState = currentState</label>
-			<nail x="-68" y="-34"/>
+			<label kind="synchronisation" x="-51" y="-85">ReturnLifeCycleState!</label>
+			<label kind="assignment" x="-51" y="-68">GlobalLifeCycleState = currentState</label>
+			<nail x="17" y="-85"/>
 		</transition>
 		<transition>
 			<source ref="id132"/>
 			<target ref="id131"/>
-			<label kind="synchronisation" x="-42" y="-110">RequestLifeCycleState?</label>
-			<nail x="-68" y="-102"/>
+			<label kind="synchronisation" x="-85" y="-153">RequestLifeCycleState?</label>
+			<nail x="17" y="-136"/>
 		</transition>
 	</template>
 	<template>
