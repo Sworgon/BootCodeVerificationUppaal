@@ -361,7 +361,7 @@ GlobalImageCode = 0</label>
 		<transition>
 			<source ref="id4"/>
 			<target ref="id3"/>
-			<label kind="synchronisation" x="-569" y="-204">HashCalled?</label>
+			<label kind="synchronisation" x="-561" y="-212">HashCalled?</label>
 		</transition>
 	</template>
 	<template>
@@ -3126,7 +3126,7 @@ void readSRAM(int e){
       else if (e == 5)
         GlobalSignature = signature;
     else if (e == 6)
-        GlobalPublicKey = privateKey;
+        GlobalPrivateKey = privateKey;
 }
 
 bool indexIsEmpty(int i){
@@ -3170,112 +3170,112 @@ void returnManifests(){
 void updateScramble(int i){
     scrambled[i] = true;
 }</declaration>
-		<location id="id193" x="-1759" y="-2184">
+		<location id="id193" x="-1835" y="-1972">
 		</location>
 		<init ref="id193"/>
 		<transition>
 			<source ref="id193"/>
 			<target ref="id193"/>
-			<label kind="synchronisation" x="-2176" y="-2260">WritePrivateKeyToSRAM?</label>
-			<label kind="assignment" x="-2176" y="-2243">privateKey = GlobalPrivateKey,
+			<label kind="synchronisation" x="-2252" y="-2048">WritePrivateKeyToSRAM?</label>
+			<label kind="assignment" x="-2252" y="-2031">privateKey = GlobalPrivateKey,
 GlobalPrivateKey = GlobalEmptyPublicKey,
 updateScramble(6)</label>
-			<nail x="-2184" y="-2184"/>
-			<nail x="-2184" y="-2125"/>
-			<nail x="-1759" y="-2125"/>
+			<nail x="-2260" y="-1972"/>
+			<nail x="-2260" y="-1913"/>
+			<nail x="-1835" y="-1913"/>
 		</transition>
 		<transition>
 			<source ref="id193"/>
 			<target ref="id193"/>
-			<label kind="select" x="-1657" y="-2295">e : int[0, NumberOfFieldsInSRAM - 1]</label>
-			<label kind="guard" x="-1657" y="-2278">scrambled[e]</label>
-			<label kind="synchronisation" x="-1657" y="-2261">ReadSRAMScrambled[e]?</label>
-			<label kind="assignment" x="-1657" y="-2244">readSRAM(e)</label>
-			<nail x="-1666" y="-2210"/>
-			<nail x="-1666" y="-2312"/>
+			<label kind="select" x="-1733" y="-2083">e : int[0, NumberOfFieldsInSRAM - 1]</label>
+			<label kind="guard" x="-1733" y="-2066">scrambled[e]</label>
+			<label kind="synchronisation" x="-1733" y="-2049">ReadSRAMScrambled[e]?</label>
+			<label kind="assignment" x="-1733" y="-2032">readSRAM(e)</label>
+			<nail x="-1742" y="-1998"/>
+			<nail x="-1742" y="-2100"/>
 		</transition>
 		<transition>
 			<source ref="id193"/>
 			<target ref="id193"/>
-			<label kind="synchronisation" x="-1938" y="-2337">WriteSignatureToSRAM?</label>
-			<label kind="assignment" x="-1938" y="-2320">signature = GlobalSignature,
+			<label kind="synchronisation" x="-2014" y="-2125">WriteSignatureToSRAM?</label>
+			<label kind="assignment" x="-2014" y="-2108">signature = GlobalSignature,
 GlobalSignature = 0,
 updateScramble(5)</label>
-			<nail x="-1759" y="-2677"/>
-			<nail x="-2184" y="-2677"/>
-			<nail x="-2184" y="-2125"/>
-			<nail x="-1759" y="-2125"/>
+			<nail x="-1835" y="-2465"/>
+			<nail x="-2260" y="-2465"/>
+			<nail x="-2260" y="-1913"/>
+			<nail x="-1835" y="-1913"/>
 		</transition>
 		<transition>
 			<source ref="id193"/>
 			<target ref="id193"/>
-			<label kind="synchronisation" x="-2176" y="-2422">WritePublicKeyToSRAM?</label>
-			<label kind="assignment" x="-2176" y="-2405">publicKey = GlobalPublicKey,
+			<label kind="synchronisation" x="-2252" y="-2210">WritePublicKeyToSRAM?</label>
+			<label kind="assignment" x="-2252" y="-2193">publicKey = GlobalPublicKey,
 clearGlobalPublicKey(),
 updateScramble(4)</label>
-			<nail x="-1759" y="-2260"/>
-			<nail x="-2184" y="-2260"/>
-			<nail x="-2184" y="-2125"/>
-			<nail x="-1759" y="-2125"/>
+			<nail x="-1835" y="-2048"/>
+			<nail x="-2260" y="-2048"/>
+			<nail x="-2260" y="-1913"/>
+			<nail x="-1835" y="-1913"/>
 		</transition>
 		<transition>
 			<source ref="id193"/>
 			<target ref="id193"/>
-			<label kind="synchronisation" x="-1904" y="-2669">WriteDigestToSRAM?</label>
-			<label kind="assignment" x="-1904" y="-2652">digest = GlobalDigest,
+			<label kind="synchronisation" x="-1980" y="-2457">WriteDigestToSRAM?</label>
+			<label kind="assignment" x="-1980" y="-2440">digest = GlobalDigest,
 GlobalDigest = 0,
 updateScramble(1)</label>
-			<nail x="-1759" y="-2193"/>
-			<nail x="-1759" y="-2592"/>
-			<nail x="-2184" y="-2592"/>
-			<nail x="-2184" y="-2125"/>
-			<nail x="-1759" y="-2125"/>
+			<nail x="-1835" y="-1981"/>
+			<nail x="-1835" y="-2380"/>
+			<nail x="-2260" y="-2380"/>
+			<nail x="-2260" y="-1913"/>
+			<nail x="-1835" y="-1913"/>
 		</transition>
 		<transition>
 			<source ref="id193"/>
 			<target ref="id193"/>
-			<label kind="synchronisation" x="-1955" y="-2498">WriteManifestToSRAM?</label>
-			<label kind="assignment" x="-1955" y="-2481">storeManifest(GlobalManifest),
+			<label kind="synchronisation" x="-2031" y="-2286">WriteManifestToSRAM?</label>
+			<label kind="assignment" x="-2031" y="-2269">storeManifest(GlobalManifest),
 returnManifests(),
 updateScramble(3)</label>
-			<nail x="-1759" y="-2507"/>
-			<nail x="-2183" y="-2508"/>
-			<nail x="-2184" y="-2125"/>
-			<nail x="-1759" y="-2125"/>
+			<nail x="-1835" y="-2295"/>
+			<nail x="-2259" y="-2296"/>
+			<nail x="-2260" y="-1913"/>
+			<nail x="-1835" y="-1913"/>
 		</transition>
 		<transition>
 			<source ref="id193"/>
 			<target ref="id193"/>
-			<label kind="synchronisation" x="-2176" y="-2753">WriteBootPolicyToSRAM?</label>
-			<label kind="assignment" x="-2176" y="-2736">bootPolicy = GlobalBootPolicy,
+			<label kind="synchronisation" x="-2252" y="-2541">WriteBootPolicyToSRAM?</label>
+			<label kind="assignment" x="-2252" y="-2524">bootPolicy = GlobalBootPolicy,
 clearGlobalBootPolicy(),
 updateScramble(0)</label>
-			<nail x="-1759" y="-2346"/>
-			<nail x="-2184" y="-2346"/>
-			<nail x="-2184" y="-2125"/>
-			<nail x="-1759" y="-2125"/>
+			<nail x="-1835" y="-2134"/>
+			<nail x="-2260" y="-2134"/>
+			<nail x="-2260" y="-1913"/>
+			<nail x="-1835" y="-1913"/>
 		</transition>
 		<transition>
 			<source ref="id193"/>
 			<target ref="id193"/>
-			<label kind="synchronisation" x="-2176" y="-2583">WriteImageCodeToSRAM?</label>
-			<label kind="assignment" x="-2176" y="-2566">imageCode = GlobalImageCode,
+			<label kind="synchronisation" x="-2252" y="-2371">WriteImageCodeToSRAM?</label>
+			<label kind="assignment" x="-2252" y="-2354">imageCode = GlobalImageCode,
 GlobalImageCode = 0,
 updateScramble(2)</label>
-			<nail x="-1759" y="-2422"/>
-			<nail x="-2184" y="-2422"/>
-			<nail x="-2184" y="-2125"/>
-			<nail x="-1759" y="-2125"/>
+			<nail x="-1835" y="-2210"/>
+			<nail x="-2260" y="-2210"/>
+			<nail x="-2260" y="-1913"/>
+			<nail x="-1835" y="-1913"/>
 		</transition>
 		<transition>
 			<source ref="id193"/>
 			<target ref="id193"/>
-			<label kind="select" x="-1657" y="-2125">e: int[0, NumberOfFieldsInSRAM-1]</label>
-			<label kind="guard" x="-1657" y="-2108">!scrambled[e]</label>
-			<label kind="synchronisation" x="-1657" y="-2091">ReadSRAM[e]?</label>
-			<label kind="assignment" x="-1657" y="-2074">readSRAM(e)</label>
-			<nail x="-1666" y="-2142"/>
-			<nail x="-1666" y="-2040"/>
+			<label kind="select" x="-1733" y="-1913">e: int[0, NumberOfFieldsInSRAM-1]</label>
+			<label kind="guard" x="-1733" y="-1896">!scrambled[e]</label>
+			<label kind="synchronisation" x="-1733" y="-1879">ReadSRAM[e]?</label>
+			<label kind="assignment" x="-1733" y="-1862">readSRAM(e)</label>
+			<nail x="-1742" y="-1930"/>
+			<nail x="-1742" y="-1828"/>
 		</transition>
 	</template>
 	<system>system SystemReset, ROMStage, Flash, RomExtManifestsToTry, CheckPubKeyValid, VerifyRomExtSignature, 
@@ -3422,6 +3422,19 @@ G9</comment>
 			<formula>A[] FinalJumpToRomExt.ROM_ext_running imply ManifestObserver.Success</formula>
 			<comment>If the success state is reached, the manifest observer will be in its success state also.
 G3</comment>
+		</query>
+		<query>
+			<formula>(CheckPubKeyValid.publicKey.exponent == 1 &amp;&amp; CheckPubKeyValid.publicKey.modulus == 1)  --&gt; CheckPubKeyValid.currentPubKeyId == 1</formula>
+			<comment>When the public key is correct, the id will eventually be correct also.</comment>
+		</query>
+		<query>
+			<formula>A[] (OTBN.signature == 1 &amp;&amp; OTBN.digest == 3) == OTBN.checkSignature()</formula>
+			<comment>Uno reverse på </comment>
+		</query>
+		<query>
+			<formula>A[] (CheckPubKeyValid.currentPubKeyId == 1) == CheckPubKeyValid.checkPublicKey()</formula>
+			<comment>Uno reverse på det tjek der siger, at hvis man er i måltilstanden, så er keyen a-ok.
+G1</comment>
 		</query>
 		<query>
 			<formula>A[] 
