@@ -11,7 +11,7 @@ Primes: p = 11, q = 13
 Totient = 120
 */
 const int MemoryMaxIndex = 100;
-const int NumberOfFlashBanks = 1; 
+const int NumberOfFlashBanks = 2; 
 const int NumberOfKeysInWhitelist = 1; //Calculated ids will always be either 1 or 0 so more ids in whitelist does not add anything atm.
 const int NumberOfFieldsInSRAM = 6;
 
@@ -119,8 +119,8 @@ broadcast chan PowerOnBC;
 chan StartRomStage;
 
 broadcast chan CheckRomExtManifestCallBC;
-chan CheckRomExtManifestValid,
-     CheckRomExtManifestNotValid;
+chan CheckRomExtManifestValid;
+broadcast chan CheckRomExtManifestNotValidBC;
 
 chan TryReadMemory[MemoryMaxIndex][MemoryMaxIndex];
 chan TryWriteMemory[MemoryMaxIndex][MemoryMaxIndex];
@@ -175,8 +175,9 @@ broadcast chan CheckPublicKeyValidCallBC,
 broadcast chan CheckSignatureBC,
                RSAValidBC,
                RSANotValidBC;
-chan SignatureNotValid,
-     SignatureValid;
+
+broadcast chan SignatureNotValidBC;
+chan SignatureValid;
 
 broadcast chan VerifyRomExtSignatureCallBC;
 
@@ -424,7 +425,7 @@ void hash(int a){
 		<transition>
 			<source ref="id9"/>
 			<target ref="id13"/>
-			<label kind="synchronisation" x="-1385" y="-289">SignatureNotValid!</label>
+			<label kind="synchronisation" x="-1411" y="-297">SignatureNotValidBC!</label>
 		</transition>
 		<transition>
 			<source ref="id10"/>
@@ -863,7 +864,8 @@ void writeMemory(int startIndex, int endIndex){
 		<transition>
 			<source ref="id42"/>
 			<target ref="id43"/>
-			<label kind="synchronisation" x="-620" y="-705">PowerOnBC?</label>
+			<label kind="synchronisation" x="-612" y="-714">PowerOnBC?</label>
+			<label kind="assignment" x="-637" y="-697">initializeMemory()</label>
 		</transition>
 		<transition>
 			<source ref="id41"/>
@@ -894,8 +896,7 @@ k : int[1,2],
 l : int[1,2],
 m : int[0,2]</label>
 			<label kind="guard" x="-416" y="-722">loopIndex &lt; NumberOfFlashBanks</label>
-			<label kind="assignment" x="-416" y="-705">initializeMemory(),
-manifests.rom_exts_mfs[loopIndex].image_code = i,
+			<label kind="assignment" x="-416" y="-705">manifests.rom_exts_mfs[loopIndex].image_code = i,
 manifests.rom_exts_mfs[loopIndex].signature = j,
 manifests.rom_exts_mfs[loopIndex].publicKey.exponent = k,
 manifests.rom_exts_mfs[loopIndex].publicKey.modulus = l,
@@ -991,8 +992,8 @@ void clearManifest(){
 			<label kind="assignment" x="-476" y="-8">loopIndex++</label>
 			<nail x="-493" y="17"/>
 			<nail x="-493" y="-425"/>
-			<nail x="-348" y="-425"/>
-			<nail x="-348" y="-442"/>
+			<nail x="-408" y="-425"/>
+			<nail x="-408" y="-442"/>
 			<nail x="-110" y="-442"/>
 		</transition>
 		<transition>
@@ -1021,7 +1022,7 @@ void clearManifest(){
 		<transition>
 			<source ref="id49"/>
 			<target ref="id51"/>
-			<label kind="synchronisation" x="-59" y="-425">CheckRomExtManifestNotValid?</label>
+			<label kind="synchronisation" x="-59" y="-425">CheckRomExtManifestNotValidBC?</label>
 			<label kind="assignment" x="-59" y="-408">loopIndex++</label>
 			<nail x="-68" y="-408"/>
 		</transition>
@@ -1072,7 +1073,7 @@ clearGlobalRomExtsManifests()</label>
 		<transition>
 			<source ref="id48"/>
 			<target ref="id51"/>
-			<label kind="synchronisation" x="51" y="-255">SignatureNotValid?</label>
+			<label kind="synchronisation" x="51" y="-255">SignatureNotValidBC?</label>
 			<label kind="assignment" x="110" y="-272">loopIndex++</label>
 			<nail x="221" y="-204"/>
 			<nail x="221" y="-229"/>
@@ -1196,7 +1197,7 @@ void clearManifest(){
 			<source ref="id67"/>
 			<target ref="id68"/>
 			<label kind="guard" x="25" y="0">!checkRomExtManifest()</label>
-			<label kind="synchronisation" x="25" y="17">CheckRomExtManifestNotValid!</label>
+			<label kind="synchronisation" x="25" y="17">CheckRomExtManifestNotValidBC!</label>
 			<nail x="416" y="0"/>
 			<nail x="17" y="0"/>
 		</transition>
@@ -1629,7 +1630,7 @@ GlobalSignature = 0</label>
 			<source ref="id104"/>
 			<target ref="id107"/>
 			<label kind="guard" x="-25" y="8">GlobalSignature != 33</label>
-			<label kind="synchronisation" x="-25" y="25">SignatureNotValid?</label>
+			<label kind="synchronisation" x="-25" y="25">SignatureNotValidBC?</label>
 			<nail x="187" y="51"/>
 		</transition>
 		<transition>
@@ -2586,10 +2587,10 @@ int[0,2] image_code;</declaration>
 			<name x="-153" y="-247">CheckingRomExtManifest</name>
 		</location>
 		<location id="id165" x="-170" y="-306">
-			<name x="-180" y="-340">Initial</name>
+			<name x="-212" y="-340">Initial</name>
 		</location>
 		<location id="id166" x="-170" y="-68">
-			<name x="-153" y="-76">AwaitingSignature</name>
+			<name x="-153" y="-93">AwaitingSignature</name>
 		</location>
 		<location id="id167" x="-170" y="51">
 			<name x="-153" y="42">CheckingSignature</name>
@@ -2598,6 +2599,28 @@ int[0,2] image_code;</declaration>
 		<location id="id168" x="-170" y="153">
 		</location>
 		<init ref="id165"/>
+		<transition>
+			<source ref="id168"/>
+			<target ref="id165"/>
+			<label kind="synchronisation" x="102" y="51">SignatureNotValidBC?</label>
+			<nail x="238" y="153"/>
+			<nail x="238" y="-357"/>
+			<nail x="-170" y="-357"/>
+		</transition>
+		<transition>
+			<source ref="id166"/>
+			<target ref="id165"/>
+			<label kind="synchronisation" x="76" y="-161">PubKeyNotValidBC?</label>
+			<nail x="76" y="-68"/>
+			<nail x="76" y="-306"/>
+		</transition>
+		<transition>
+			<source ref="id164"/>
+			<target ref="id165"/>
+			<label kind="synchronisation" x="-510" y="-272">CheckRomExtManifestNotValidBC?</label>
+			<nail x="-272" y="-221"/>
+			<nail x="-272" y="-306"/>
+		</transition>
 		<transition>
 			<source ref="id160"/>
 			<target ref="id162"/>
@@ -2639,7 +2662,7 @@ signature = GlobalManifest.signature</label>
 		<transition>
 			<source ref="id163"/>
 			<target ref="id162"/>
-			<label kind="guard" x="-408" y="-187">manifest.publicKey != key</label>
+			<label kind="guard" x="-518" y="-161">manifest.publicKey != key</label>
 			<nail x="-340" y="-153"/>
 		</transition>
 		<transition>
@@ -3287,10 +3310,9 @@ updateScramble(2)</label>
 		</transition>
 	</template>
 	<system>system SystemReset, ROMStage, Flash, RomExtManifestsToTry, CheckPubKeyValid, VerifyRomExtSignature, 
-       ValidityCheckObserver, OTBN, RomExt, PmpModule, Zeno, FinalJumpToRomExt, ReadBootPolicy, 
-       CheckRomExtManifest, ExceptionHandler, ReadPublicKey, LifeCycleController,
-       FlashController, SRAMController, SRAM, MemoryHandling, ManifestObserver, OTP, OTPController, EDN,
-       EntropySource, CSRNG, HASH;
+       OTBN, RomExt, PmpModule, Zeno, FinalJumpToRomExt, ReadBootPolicy, CheckRomExtManifest,
+       ExceptionHandler, ReadPublicKey, LifeCycleController, FlashController, SRAMController, 
+       SRAM, MemoryHandling, ManifestObserver, OTP, OTPController, EDN, EntropySource, CSRNG, HASH;
     </system>
 	<queries>
 		<query>
