@@ -11,7 +11,7 @@ Primes: p = 11, q = 13
 Totient = 120
 */
 const int MemoryMaxIndex = 100;
-const int NumberOfFlashBanks = 2; 
+const int NumberOfFlashBanks = 1;
 const int NumberOfKeysInWhitelist = 1; //Calculated ids will always be either 1 or 0 so more ids in whitelist does not add anything atm.
 const int NumberOfFieldsInSRAM = 6;
 
@@ -954,6 +954,7 @@ void clearManifest(){
 			<name x="263" y="-195">CheckingSignature</name>
 		</location>
 		<location id="id49" x="-85" y="-357">
+			<name x="-68" y="-382">CheckingIdentifier</name>
 		</location>
 		<location id="id50" x="-85" y="-561">
 			<name x="-68" y="-578">BootFailed</name>
@@ -3422,11 +3423,6 @@ debug</comment>
 			<formula>A[] !ManifestObserver.Failure</formula>
 			<comment>The manifestObserver never reaches its fail location.
 G3</comment>
-		</query>
-		<query>
-			<formula>EqualManifestContents(GlobalEmptyManifest, ROMStage.currentManifest) --&gt; FinalJumpToRomExt.ROM_ext_running</formula>
-			<comment>Verifies EqualManifestContents for the negaive case.
-debug</comment>
 		</query>
 		<query>
 			<formula>A[] (CheckRomExtManifest.manifest.identifier == 1) == CheckRomExtManifest.checkRomExtManifest()</formula>
