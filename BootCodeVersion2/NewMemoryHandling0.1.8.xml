@@ -1402,7 +1402,6 @@ void calculateKeyId(){
         currentPubKeyId = 1;
     else
         currentPubKeyId = 0;
-    currentPubKeyId = 1;
 }</declaration>
 		<location id="id89" x="-459" y="-289">
 		</location>
@@ -3449,7 +3448,7 @@ imply something based on whether the PmpModule template is in this location. We 
 this query for writing and executing as well. </comment>
 		</query>
 		<query>
-			<formula>E&lt;&gt; PmpModule.GoodWerite</formula>
+			<formula>E&lt;&gt; PmpModule.GoodWrite</formula>
 			<comment>Q29: Positive case possible - write.                                                                                                                                                                                       
 This query says that a path from the initial location to a state where the PmpModule template 
 is in the GoodRead location exists. It is used to make sure that some of the other queries that 
