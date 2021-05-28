@@ -3287,7 +3287,7 @@ key, and digest values, if and only if the locally declared checkSignature will 
 true. This query verifies the checkSignature function in the positive and negative case.</comment>
 		</query>
 		<query>
-			<formula>EqualManifestContents(validManifest,ROMStage.currentManifest) --&gt; (FinalJumpToRomExt.ROM_ext_running &amp;&amp; EqualManifestContents(validManifest,ROMStage.currentManifest))}\\</formula>
+			<formula>EqualManifestContents(validManifest,ROMStage.currentManifest) --&gt; (FinalJumpToRomExt.ROM_ext_running &amp;&amp; EqualManifestContents(validManifest,ROMStage.currentManifest))</formula>
 			<comment>Q9: Valid Manifest Leads to Rom Ext Running.                                                                                                                                                                                       
 This query is a liveness query. It says that whenever the the current manifest in the ROMStage
 template is equal to a hypothetically correct manifest, then the FinalJumpToRomExt template will 
@@ -3395,13 +3395,13 @@ This query says that whenever the PmpModule template reaches the GoodRead locati
 then there is a PMP region that allows for reading that section of memory. </comment>
 		</query>
 		<query>
-			<formula></formula>
+			<formula>A[] PmpModule.GoodWrite imply (exists (pmpIndex : int[0,15]) PmpRegions[pmpIndex].startAddress &lt;= PmpModule.start &amp;&amp; PmpRegions[pmpIndex].endAddress &gt;= PmpModule.end &amp;&amp;  PmpRegions[pmpIndex].write)</formula>
 			<comment>Q23: Positive Case - write                                                                                                                                                                                       
 This query says that whenever the PmpModule template reaches the GoodWrite location, 
 then there is a PMP region that allows for reading that section of memory. </comment>
 		</query>
 		<query>
-			<formula></formula>
+			<formula>A[] PmpModule.GoodExecute imply (exists (pmpIndex : int[0,15]) PmpRegions[pmpIndex].startAddress &lt;= PmpModule.start &amp;&amp; PmpRegions[pmpIndex].endAddress &gt;= PmpModule.end &amp;&amp;  PmpRegions[pmpIndex].execute)</formula>
 			<comment>Q24: Positive Case - execute                                                                                                                                                                                       
 This query says that whenever the PmpModule template reaches the GoodExecute location, 
 then there is a PMP region that allows for executing that section of memory.</comment>
@@ -3418,7 +3418,7 @@ template reaches the BadRead location, then the PmpModule template will reject t
 and will not communicate with the Flash template. </comment>
 		</query>
 		<query>
-			<formula>A[] PmpModule.BadRead imply (!(exists (pmpIndex : int[0,15])
+			<formula>A[] PmpModule.BadWrite imply (!(exists (pmpIndex : int[0,15])
 PmpRegions[pmpIndex]. startAddress &lt;= PmpModule.start &amp;&amp; 
 PmpRegions[pmpIndex].endAddress &gt;= PmpModule.end &amp;&amp;
 PmpRegions[pmpIndex].write))</formula>
@@ -3429,7 +3429,7 @@ template reaches the BadWrite location, then the PmpModule template will reject 
 and will not communicate with the Flash template. </comment>
 		</query>
 		<query>
-			<formula>A[] PmpModule.BadRead imply (!(exists (pmpIndex : int[0,15])
+			<formula>A[] PmpModule.BadExecute imply (!(exists (pmpIndex : int[0,15])
 PmpRegions[pmpIndex]. startAddress &lt;= PmpModule.start &amp;&amp; 
 PmpRegions[pmpIndex].endAddress &gt;= PmpModule.end &amp;&amp;
 PmpRegions[pmpIndex].execute))</formula>
