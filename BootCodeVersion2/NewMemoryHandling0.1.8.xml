@@ -3377,13 +3377,13 @@ If the PmpModule template is ever in the BadRead location, then an invalid read 
 By verifying this query, it is verified that such a request has not been made. </comment>
 		</query>
 		<query>
-			<formula></formula>
+			<formula>A[] !PmpModule.BadWrite</formula>
 			<comment>Q20: Never Negative Case - Write.                                                                                                                                                                                       
 If the PmpModule template is ever in the BadWrite location, then an invalid read request has been issued. 
 By verifying this query, it is verified that such a request has not been made. </comment>
 		</query>
 		<query>
-			<formula></formula>
+			<formula>A[] !PmpModule.BadExecute</formula>
 			<comment>Q21: Never Negative Case - Execute.                                                                                                                                                                                       
 If the PmpModule template is ever in the BadExecute location, then an invalid read request has been issued. 
 By verifying this query, it is verified that such a request has not been made. </comment>
