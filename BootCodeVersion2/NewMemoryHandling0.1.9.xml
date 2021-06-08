@@ -3094,7 +3094,7 @@ boot_policy_t bootPolicy;
 rom_exts_manifests_t manifests;
 int signature;
 pub_key_t privateKey;
-bool scrambled[7];
+bool scrambled[8];
 
 int loopIndex;
 
