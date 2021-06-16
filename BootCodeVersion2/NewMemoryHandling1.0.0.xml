@@ -3414,7 +3414,7 @@ check that all fields of SRAM are either scrambled or empty when the model is in
  contains the ROMExtRunning location of the FinalJumpToRomExt template.</comment>
 		</query>
 		<query>
-			<formula>A[] FinalJumpToRomExt.ROMExtRunning imply forall (i : int[0,6]) SRAM.indexIsEmpty(i)</formula>
+			<formula>A[] FinalJumpToRomExt.ROMExtRunning imply forall (i : int[0,7]) SRAM.indexIsEmpty(i)</formula>
 			<comment>Q16: Check SRAM Wiped.                                                                                                                                                                                            
 This query is almost identical to Q14. However, this query only passes if every field of SRAM
 is empty i.e. wiped. This property does not pass, which means that not all of the data in the SRAM
