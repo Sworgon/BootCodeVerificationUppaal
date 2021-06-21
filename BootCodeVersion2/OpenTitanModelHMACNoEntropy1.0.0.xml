@@ -164,7 +164,7 @@ chan SignalSRAMRead[NumberOfFieldsInSRAM],SignalSRAMReadReturn;
 
 chan WriteMemory, WriteMemoryReturn;
 
-broadcast chan GetRootKeyBC;
+chan GetRootKeyBC;
 
 chan HashCalled, HashReturn;
 
@@ -479,12 +479,12 @@ clearGlobalManifest()</label>
 		<transition>
 			<source ref="id15"/>
 			<target ref="id16"/>
-			<label kind="synchronisation" x="-680" y="-178">HashReturn?</label>
+			<label kind="synchronisation" x="-680" y="-178">HMACReturn?</label>
 		</transition>
 		<transition>
 			<source ref="id14"/>
 			<target ref="id15"/>
-			<label kind="synchronisation" x="-578" y="-263">HashCalled!</label>
+			<label kind="synchronisation" x="-578" y="-263">HMACCalled!</label>
 		</transition>
 		<transition>
 			<source ref="id13"/>
@@ -515,7 +515,7 @@ void derive(){
 		</location>
 		<location id="id26" x="272" y="119">
 		</location>
-		<location id="id27" x="0" y="-85">
+		<location id="id27" x="195" y="-110">
 		</location>
 		<location id="id28" x="255" y="144">
 		</location>
@@ -567,7 +567,7 @@ GlobalEntropy = 0</label>
 		<transition>
 			<source ref="id27"/>
 			<target ref="id22"/>
-			<label kind="synchronisation" x="0" y="-59">GetRootKeyBC!</label>
+			<label kind="synchronisation" x="136" y="-68">GetRootKeyBC!</label>
 		</transition>
 		<transition>
 			<source ref="id28"/>
@@ -604,7 +604,7 @@ GlobalOTPStorage = OTPvalue</label>
 		</transition>
 		<transition>
 			<source ref="id24"/>
-			<target ref="id27"/>
+			<target ref="id22"/>
 			<label kind="synchronisation" x="0" y="-144">OTPRead[RootKeyIndex]!</label>
 		</transition>
 		<transition>
@@ -626,8 +626,9 @@ GlobalOTPStorage = OTPvalue</label>
 		<transition>
 			<source ref="id32"/>
 			<target ref="id32"/>
+			<label kind="select" x="-25" y="-51">i : int[0,1]</label>
 			<label kind="synchronisation" x="-25" y="-34">GetEntropy?</label>
-			<label kind="assignment" x="-25" y="-17">GlobalEntropy = 1</label>
+			<label kind="assignment" x="-25" y="-17">GlobalEntropy = i</label>
 			<nail x="-68" y="0"/>
 			<nail x="-34" y="0"/>
 		</transition>
@@ -2344,56 +2345,52 @@ void deriveSecretKey(){
 </declaration>
 		<location id="id147" x="-637" y="-306">
 		</location>
-		<location id="id148" x="-467" y="-144">
-			<name x="-450" y="-170">OwnerIntermediateKey</name>
-			<label kind="comments" x="-450" y="-144">Derive more keys, but this is out of scope</label>
+		<location id="id148" x="-476" y="-144">
+			<name x="-459" y="-170">OwnerIntermediateKey</name>
+			<label kind="comments" x="-459" y="-144">Derive more keys, but this is out of scope</label>
 		</location>
-		<location id="id149" x="-467" y="-272">
-			<name x="-450" y="-280">CreatorRootKeyDerived</name>
+		<location id="id149" x="-476" y="-272">
+			<name x="-459" y="-280">CreatorRootKeyDerived</name>
 		</location>
-		<location id="id150" x="-467" y="-740">
-			<name x="-544" y="-748">Initialized</name>
-			<committed/>
+		<location id="id150" x="-476" y="-578">
+			<name x="-459" y="-595">Initialized</name>
 		</location>
-		<location id="id151" x="-467" y="-977">
-			<name x="-526" y="-985">Reset</name>
+		<location id="id151" x="-476" y="-679">
+			<name x="-501" y="-713">Reset</name>
 		</location>
-		<location id="id152" x="-467" y="-680">
-			<committed/>
+		<location id="id152" x="-476" y="-493">
 		</location>
-		<location id="id153" x="-467" y="-595">
+		<location id="id153" x="-935" y="-408">
 		</location>
-		<location id="id154" x="-467" y="-408">
-			<committed/>
+		<location id="id154" x="-476" y="-408">
 		</location>
 		<location id="id155" x="-731" y="-272">
 		</location>
 		<location id="id156" x="-637" y="-238">
 		</location>
-		<location id="id157" x="-467" y="-493">
-			<committed/>
+		<location id="id157" x="-782" y="-408">
 		</location>
-		<location id="id158" x="-467" y="-892">
+		<location id="id158" x="-781" y="-679">
 		</location>
-		<location id="id159" x="-467" y="-799">
+		<location id="id159" x="-781" y="-578">
 		</location>
 		<init ref="id151"/>
 		<transition>
 			<source ref="id159"/>
 			<target ref="id150"/>
-			<label kind="synchronisation" x="-408" y="-807">ReturnEDN?</label>
-			<label kind="assignment" x="-408" y="-790">entropy = GlobalEntropy,
+			<label kind="synchronisation" x="-714" y="-595">ReturnEDN?</label>
+			<label kind="assignment" x="-714" y="-629">entropy = GlobalEntropy,
 GlobalEntropy = 0</label>
 		</transition>
 		<transition>
 			<source ref="id158"/>
 			<target ref="id159"/>
-			<label kind="synchronisation" x="-459" y="-850">RequestEDN!</label>
+			<label kind="synchronisation" x="-884" y="-637">RequestEDN!</label>
 		</transition>
 		<transition>
 			<source ref="id153"/>
 			<target ref="id157"/>
-			<label kind="synchronisation" x="-450" y="-561">GetRootKeyBC?</label>
+			<label kind="synchronisation" x="-893" y="-459">GetRootKeyBC?</label>
 		</transition>
 		<transition>
 			<source ref="id155"/>
@@ -2411,21 +2408,22 @@ GlobalEntropy = 0</label>
 		<transition>
 			<source ref="id154"/>
 			<target ref="id149"/>
-			<label kind="synchronisation" x="-433" y="-407">KMACReturn?</label>
-			<label kind="assignment" x="-433" y="-390">CreatorRootKey = GlobalKMACResult,
+			<label kind="synchronisation" x="-442" y="-407">KMACReturn?</label>
+			<label kind="assignment" x="-442" y="-390">CreatorRootKey = GlobalKMACResult,
 GlobalKMACResult = 0</label>
 		</transition>
 		<transition>
 			<source ref="id157"/>
 			<target ref="id154"/>
-			<label kind="synchronisation" x="-450" y="-467">KMACCalled!</label>
-			<label kind="assignment" x="-450" y="-450">GlobalSecretKey = rootKey</label>
+			<label kind="synchronisation" x="-731" y="-442">KMACCalled!</label>
+			<label kind="assignment" x="-731" y="-425">GlobalSecretKey = rootKey</label>
 		</transition>
 		<transition>
 			<source ref="id152"/>
-			<target ref="id153"/>
-			<label kind="synchronisation" x="-450" y="-654">ReturnLifeCycleState?</label>
-			<label kind="assignment" x="-450" y="-637">LifeCycleState = GlobalLifeCycleState</label>
+			<target ref="id157"/>
+			<label kind="synchronisation" x="-756" y="-535">ReturnLifeCycleState?</label>
+			<label kind="assignment" x="-756" y="-518">LifeCycleState = GlobalLifeCycleState</label>
+			<nail x="-782" y="-493"/>
 		</transition>
 		<transition>
 			<source ref="id156"/>
@@ -2443,17 +2441,17 @@ GlobalKMACResult = 0</label>
 		<transition>
 			<source ref="id149"/>
 			<target ref="id148"/>
-			<label kind="synchronisation" x="-450" y="-204">AdvanceKMState?</label>
+			<label kind="synchronisation" x="-459" y="-204">AdvanceKMState?</label>
 		</transition>
 		<transition>
 			<source ref="id150"/>
 			<target ref="id152"/>
-			<label kind="synchronisation" x="-450" y="-722">RequestLifeCycleState!</label>
+			<label kind="synchronisation" x="-468" y="-552">RequestLifeCycleState!</label>
 		</transition>
 		<transition>
 			<source ref="id151"/>
 			<target ref="id158"/>
-			<label kind="synchronisation" x="-450" y="-943">PowerOnBC?</label>
+			<label kind="synchronisation" x="-764" y="-730">PowerOnBC?</label>
 		</transition>
 	</template>
 	<template>
@@ -3289,7 +3287,8 @@ updateScramble(2)</label>
 	<system>system SystemReset, ROMStage, Flash, RomExtManifestsToTry, CheckPubKeyValid, VerifyRomExtSignature, 
        OTBN, RomExt, PmpModule, Zeno, FinalJumpToRomExt, ReadBootPolicy, CheckRomExtManifest,
        ExceptionHandler, ReadPublicKey, LifeCycleController, FlashController, SRAMController, 
-       SRAM, MemoryHandling, ManifestObserver, OTP, OTPController, EDN, EntropySource, CSRNG, HASH;
+       SRAM, MemoryHandling, ManifestObserver, OTP, OTPController, EDN, EntropySource, CSRNG, HMAC,
+       KeyManager, KMAC;
     </system>
 	<queries>
 		<query>

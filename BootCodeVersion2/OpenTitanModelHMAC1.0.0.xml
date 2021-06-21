@@ -3289,7 +3289,8 @@ updateScramble(2)</label>
 	<system>system SystemReset, ROMStage, Flash, RomExtManifestsToTry, CheckPubKeyValid, VerifyRomExtSignature, 
        OTBN, RomExt, PmpModule, Zeno, FinalJumpToRomExt, ReadBootPolicy, CheckRomExtManifest,
        ExceptionHandler, ReadPublicKey, LifeCycleController, FlashController, SRAMController, 
-       SRAM, MemoryHandling, ManifestObserver, OTP, OTPController, EDN, EntropySource, CSRNG, HASH;
+       SRAM, MemoryHandling, ManifestObserver, OTP, OTPController, EDN, EntropySource, CSRNG, HMAC,
+       KeyManager, KMAC;
     </system>
 	<queries>
 		<query>
