@@ -510,6 +510,7 @@ void derive(){
 		<location id="id23" x="272" y="0">
 		</location>
 		<location id="id24" x="0" y="-170">
+			<committed/>
 		</location>
 		<location id="id25" x="-255" y="119">
 		</location>
@@ -522,6 +523,7 @@ void derive(){
 		<location id="id29" x="-221" y="-170">
 		</location>
 		<location id="id30" x="8" y="221">
+			<committed/>
 		</location>
 		<location id="id31" x="-204" y="221">
 		</location>
@@ -637,12 +639,15 @@ GlobalOTPStorage = OTPvalue</label>
 		<name>EDN</name>
 		<declaration>int entropy;</declaration>
 		<location id="id33" x="-1258" y="-986">
+			<committed/>
 		</location>
 		<location id="id34" x="-1258" y="-1079">
+			<committed/>
 		</location>
 		<location id="id35" x="-1139" y="-1079">
 		</location>
 		<location id="id36" x="-1139" y="-986">
+			<committed/>
 		</location>
 		<init ref="id35"/>
 		<transition>
@@ -676,8 +681,10 @@ GlobalEntropy = 0</label>
     //GlobalEntropy += 1;
 }</declaration>
 		<location id="id37" x="0" y="0">
+			<committed/>
 		</location>
 		<location id="id38" x="136" y="0">
+			<committed/>
 		</location>
 		<location id="id39" x="68" y="-102">
 		</location>
@@ -2092,8 +2099,10 @@ void deriveLifeCycleState(){
 		</location>
 		<location id="id137" x="-272" y="-187">
 			<name x="-297" y="-221">RAW</name>
+			<committed/>
 		</location>
 		<location id="id138" x="-68" y="-187">
+			<committed/>
 		</location>
 		<init ref="id136"/>
 		<transition>
@@ -2159,8 +2168,7 @@ void hash(){ //Might want another approach since hash is called multiple times p
         message = 4; //Hash of an inccorect image code
 }
 
-void wipeSecretKey(int num){
-    if (num == 1)
+void wipeSecretKey(){
         secretKey = 0;
 }
 bool my_xor(bool a, bool b){
@@ -2259,7 +2267,6 @@ void HMAC() // Assuming the key is always exactly 512 bits long.
 		<transition>
 			<source ref="id140"/>
 			<target ref="id146"/>
-			<label kind="guard" x="-646" y="-195">loopIndex &gt;= 2</label>
 			<label kind="synchronisation" x="-663" y="-161">WriteMemory!</label>
 			<label kind="assignment" x="-663" y="-144">GlobalDigest = message</label>
 		</transition>
@@ -2280,7 +2287,8 @@ GlobalImageCode = 0</label>
 			<target ref="id140"/>
 			<label kind="synchronisation" x="-484" y="-314">ReturnSecretKey?</label>
 			<label kind="assignment" x="-493" y="-289">secretKey = GlobalSecretKey,
-GlobalSecretKey = 0</label>
+GlobalSecretKey = 0,
+hash()</label>
 		</transition>
 		<transition>
 			<source ref="id142"/>
@@ -2290,10 +2298,9 @@ GlobalSecretKey = 0</label>
 		<transition>
 			<source ref="id140"/>
 			<target ref="id140"/>
-			<label kind="guard" x="-356" y="-204">loopIndex &lt; 2</label>
+			<label kind="guard" x="-356" y="-204">false</label>
 			<label kind="assignment" x="-357" y="-187">calculateMessagePadding(),
 breakIntoChunks(),
-hash(),
 loopIndex += 1</label>
 			<nail x="-442" y="-238"/>
 			<nail x="-374" y="-170"/>
@@ -2302,10 +2309,9 @@ loopIndex += 1</label>
 		<transition>
 			<source ref="id145"/>
 			<target ref="id141"/>
-			<label kind="select" x="-918" y="-136">i : int[0,1]</label>
 			<label kind="synchronisation" x="-918" y="-102">HMACReturn!</label>
 			<label kind="assignment" x="-918" y="-85">loopIndex = 0,
-wipeSecretKey(i)</label>
+wipeSecretKey()</label>
 		</transition>
 		<transition>
 			<source ref="id141"/>
@@ -2349,6 +2355,7 @@ void deriveSecretKey(){
 		</location>
 		<location id="id150" x="-476" y="-578">
 			<name x="-459" y="-595">Initialized</name>
+			<committed/>
 		</location>
 		<location id="id151" x="-476" y="-679">
 			<name x="-501" y="-713">Reset</name>
@@ -2367,6 +2374,7 @@ void deriveSecretKey(){
 			<committed/>
 		</location>
 		<location id="id158" x="-781" y="-679">
+			<committed/>
 		</location>
 		<location id="id159" x="-781" y="-578">
 		</location>
@@ -2450,7 +2458,7 @@ GlobalKMACResult = 0</label>
 		<transition>
 			<source ref="id151"/>
 			<target ref="id158"/>
-			<label kind="synchronisation" x="-764" y="-730">PowerOnBC?</label>
+			<label kind="synchronisation" x="-705" y="-714">PowerOnBC?</label>
 		</transition>
 	</template>
 	<template>
@@ -2478,8 +2486,7 @@ void breakIntoChunks(){
 void hash(){
 
 }
-void wipeSecretKey(int num){
-    if (num == 1)
+void wipeSecretKey(){
         key = 0;
 }
 int combineRegisters(int entropy){
@@ -2506,7 +2513,7 @@ void clearLifeCycleState(){
 		<transition>
 			<source ref="id160"/>
 			<target ref="id160"/>
-			<label kind="guard" x="613" y="221">loopIndex &lt; 2</label>
+			<label kind="guard" x="613" y="221">false</label>
 			<label kind="assignment" x="612" y="238">breakIntoChunks(),
 hash(),
 loopIndex += 1</label>
@@ -2518,11 +2525,9 @@ loopIndex += 1</label>
 		<transition>
 			<source ref="id160"/>
 			<target ref="id161"/>
-			<label kind="select" x="297" y="340">i : int[0,1]</label>
-			<label kind="guard" x="297" y="357">loopIndex &gt;= 2</label>
 			<label kind="synchronisation" x="297" y="374">KMACReturn!</label>
 			<label kind="assignment" x="297" y="391">loopIndex = 0,
-wipeSecretKey(i),
+wipeSecretKey(),
 GlobalKMACResult = message,
 clearLifeCycleState(),
 message = 0</label>
